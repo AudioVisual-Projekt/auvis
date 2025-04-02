@@ -22,3 +22,4 @@ Windows  - CMD
 ### 3. Pakete aus requirements.txt installieren
 pip install -r requirements.txt
 
+speichern
