@@ -1,0 +1,36 @@
+0.0 - 13.68: SPEAKER_02
+ Last week, in the first episode of this two-part series, the Nobel Prize-winning economist Richard Thaler described one of the most common afflictions of our time.
+
+13.68 - 22.68: SPEAKER_01
+ If you make things harder, I call that sludge kind of a fun word for stuff that's the opposite of fun.
+
+22.68 - 61.28: SPEAKER_02
+ We heard how insurance companies use sludge to ration healthcare, how subscription services use sludge to avoid cancellations, and how governments are full of sludge because, well, because sludge is an almost inevitable byproduct of bureaucracy.  Today, in part two, we look at ways to fight sludge through better legislation, through the use of artificial intelligence, and maybe by hiring a personal sludge coach.  I'm not available.  That's okay. We are available starting now.
+
+70.58 - 79.4: SPEAKER_00
+ This is Freakonomics Radio, the podcast that explores the hidden side of everything, with your host, Stephen Dubner.
+
+88.72 - 178.02: SPEAKER_02
+ It is a natural temptation to think that your problems are worse than other people's problems.  Also, to think that the problems of our generation are worse than previous generations.  But, as it was written way back in Ecclesiastes, there is nothing new under the sun.  And so it is with sludge.  For many years, it went by another name, a prettier name, Red Tape.  Do you know the story of how Red Tape got its name?  Here, it's a cute story, I'll tell you.  It apparently dates back to 16th century Spain and King Charles V, who had his most important legal documents bound in red ribbon.  Eye-catching and expensive ribbon befitting a king versus the plain ribbon used for less important documents.  This tradition spread through Europe and to America.  And as governments and legal institutions expanded, there was ever more need to go back into the archives to find these important foundational documents.  This meant that lawyers and clerks had to constantly untie and retie those red ribbons, later called red tape.  Okay, that concludes our history for today.  Back to the sludgy present.  In last week's episode, we met the Stanford economist Neil Mahoney, who spent time in both the Biden and Obama administrations.  He is particularly interested in consumer finance, which often means protecting consumers from financial exploitation.
+
+179.64 - 193.84: SPEAKER_03
+ At some point, we should talk about my work on subscriptions because it fits in to all of this.  Okay, let's talk about that.  The starting point for this project is I had a general impression that nobody can keep track of their subscriptions.
+
+194.62 - 202.82: SPEAKER_02
+ Meaning it's easy to sign up for something and forget about it and keep paying for it.  For example, a digital subscription to a newspaper.
+
+203.28 - 220.6: SPEAKER_03
+ So me and my team, we took a list of the 50 highest circulation newspapers in the U.S.  And we signed up for subscriptions and we canceled them.  And we did it in Massachusetts, where there are no special consumer protection laws on the books.
+
+221.16 - 226.34: SPEAKER_02
+ You're saying these are 50 newspapers spread out across the country, but you're doing the signing up and canceling in Massachusetts.
+
+226.82 - 227.3: SPEAKER_03
+ Exactly.
+
+227.7 - 236.92: SPEAKER_02
+ And why is it relevant where you're doing it from?  Because the laws apply to where your IP address is.  Not where the firm is.
+
+236.92 - 239.98: SPEAKER_03
+ Not where the firm is.  So we did it from Massachusetts.
+
