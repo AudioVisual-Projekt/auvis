@@ -1,4 +1,9 @@
-######################################
+#########################  PREREQUISITS ######################
+##                                                          ##
+##  ffmpeg muss auf dem System installiert sein !!!         ##
+##                                                          ##
+##############################################################
+
 # aktuelles Arbeitsverzeichnis ausgeben und das Elternverzeichnis dieser Datei  
 # in die Python - Suchpfade (sys.path) aufnehmen
 # => Module / Pakete aus dem Elternverzeichnis können so gefunden und importiert werden
