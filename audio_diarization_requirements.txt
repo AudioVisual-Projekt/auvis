@@ -4,12 +4,5 @@ python-dotenv
 pyannote.audio
 torch
 git+https://github.com/openai/whisper.git
-
-
-
-
-
-
-
-
-
+subprocess
+soundfile
