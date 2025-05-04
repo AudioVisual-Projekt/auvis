@@ -1,0 +1,74 @@
+Time 67ms | Count: 0 | Speaker: None (Off) | Persons: 
+Time 150ms | Count: 0 | Speaker: None (Off) | Persons: 
+Time 233ms | Count: 1 | Speaker: None (Off) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False
+Time 317ms | Count: 2 | Speaker: None (Off) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 400ms | Count: 2 | Speaker: None (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 483ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:True, id:3 gender:None speaking:False
+Time 567ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 650ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 733ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 817ms | Count: 2 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 900ms | Count: 2 | Speaker: 2 (On) | Persons: id:2 gender:None speaking:True, id:3 gender:None speaking:False
+Time 983ms | Count: 2 | Speaker: 2 (On) | Persons: id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 1067ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 1150ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 1233ms | Count: 2 | Speaker: 2 (On) | Persons: id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 1317ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 1400ms | Count: 2 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 1483ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:True, id:3 gender:None speaking:False
+Time 1567ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False
+Time 1650ms | Count: 2 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False
+Time 1733ms | Count: 2 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False
+Time 1817ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:True, id:3 gender:None speaking:False
+Time 1900ms | Count: 2 | Speaker: 2 (Off) | Persons: id:3 gender:None speaking:False
+Time 1983ms | Count: 2 | Speaker: 2 (Off) | Persons: 
+Time 2067ms | Count: 2 | Speaker: 2 (Off) | Persons: id:3 gender:None speaking:False
+Time 2150ms | Count: 2 | Speaker: 2 (Off) | Persons: id:3 gender:None speaking:False
+Time 2233ms | Count: 2 | Speaker: 2 (Off) | Persons: id:3 gender:None speaking:False
+Time 2317ms | Count: 2 | Speaker: 2 (Off) | Persons: id:3 gender:None speaking:False
+Time 2400ms | Count: 2 | Speaker: 2 (Off) | Persons: id:3 gender:None speaking:False
+Time 2483ms | Count: 2 | Speaker: 2 (Off) | Persons: id:3 gender:None speaking:False
+Time 2567ms | Count: 2 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 2650ms | Count: 2 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 2733ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:True
+Time 2817ms | Count: 2 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 2900ms | Count: 2 | Speaker: 1 (On) | Persons: id:1 gender:None speaking:True, id:2 gender:None speaking:True, id:3 gender:None speaking:False
+Time 2983ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:True, id:3 gender:None speaking:False
+Time 3067ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3150ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3233ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3317ms | Count: 2 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3400ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3483ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3567ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3650ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3733ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3817ms | Count: 3 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3900ms | Count: 3 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 3983ms | Count: 3 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 4067ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 4150ms | Count: 3 | Speaker: 2 (Off) | Persons: id:3 gender:None speaking:False
+Time 4233ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 4317ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 4400ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 4483ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 4567ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 4650ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 4733ms | Count: 3 | Speaker: 2 (Off) | Persons: id:3 gender:None speaking:False
+Time 4817ms | Count: 3 | Speaker: 2 (Off) | Persons: id:3 gender:None speaking:False
+Time 4900ms | Count: 3 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 4983ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:True, id:3 gender:None speaking:False
+Time 5067ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 5150ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 5233ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 5317ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 5400ms | Count: 3 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 5483ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 5567ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 5650ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 5733ms | Count: 3 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 5817ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:True, id:3 gender:None speaking:False
+Time 5900ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:True, id:3 gender:None speaking:False
+Time 5983ms | Count: 3 | Speaker: 2 (On) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False, id:3 gender:None speaking:False
+Time 6067ms | Count: 3 | Speaker: 2 (Off) | Persons: id:1 gender:None speaking:False, id:3 gender:None speaking:False
+Time 6167ms | Count: 3 | Speaker: 2 (On) | Persons: id:2 gender:None speaking:True, id:3 gender:None speaking:False
