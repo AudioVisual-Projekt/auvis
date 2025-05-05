@@ -1,4 +1,7 @@
 import sys
+import os
+import json
+
 from PySide6.QtWidgets import (
     QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
     QFileDialog, QSlider, QLabel
@@ -61,6 +64,13 @@ class VideoPlayer(QWidget):
         self.media_player.durationChanged.connect(self.update_duration)
         self.slider.sliderMoved.connect(self.set_position)
 
+        self.transcription_label = QLabel("")
+        self.transcription_label.setStyleSheet("font-size: 16px; color: white; background-color: rgba(0, 0, 0, 150); padding: 4px;")
+        self.transcription_label.setAlignment(Qt.AlignCenter)
+        self.transcript_data = {}
+
+        layout.addWidget(self.transcription_label)
+
     def open_file(self):
         file_dialog = QFileDialog(self)
         file_path, _ = file_dialog.getOpenFileName(self, "Videodatei öffnen", "", "Video Files (*.mp4 *.avi *.mkv, *.mov)")
@@ -71,6 +81,10 @@ class VideoPlayer(QWidget):
     def update_position(self, position):
         self.slider.setValue(position)
         self.time_label.setText(self.format_time(position))
+
+        current_sec = position // 1000
+        text = self.transcript_data.get(current_sec, "")
+        self.transcription_label.setText(text)
 
     def update_duration(self, duration):
         self.slider.setRange(0, duration)
@@ -87,7 +101,16 @@ class VideoPlayer(QWidget):
 
     def transcribe_video(self):
         print("Transkription gestartet (Platzhalter)")
-        #TODO:
+        # TODO:
+        file_path = "src/frontend/prototype_python/text.json"
+        if file_path:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                for entry in data["text"]:
+                    ts = int(entry["timestamp"])
+                    text = f"Sprecher {entry['speaker']}: {entry['text']}"
+                    self.transcript_data[ts] = text
+            print("Transkript geladen")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
