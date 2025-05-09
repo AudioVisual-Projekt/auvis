@@ -50,7 +50,7 @@ class Audio_Diarization(object):
     
     def save_to_file(self, text):
         
-        with open(self.out_fname, 'w') as f:
+        with open(self.out_fname, 'w', encoding='utf-8') as f:
             f.write(text)
 
 
@@ -174,7 +174,7 @@ class Audio_Diarization(object):
                 text_speaker_df.iloc[counter-1, text_speaker_df.columns.get_loc('start')] = np.nan
                 text_speaker_df.iloc[counter-1, text_speaker_df.columns.get_loc('end')] = np.nan
              
-        text_speaker_df = text_speaker_df.dropna().loc[:,['start','end','text','speaker']]
+        text_speaker_df = text_speaker_df.dropna(subset=['start', 'end', 'text', 'speaker'])
         text_speaker_df = text_speaker_df.sort_values('start')    
         text_speaker_df = text_speaker_df.reset_index(drop=True)
         
