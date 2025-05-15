@@ -1,0 +1,13 @@
+Time 0ms | Count: 0 | Speaker: None (Offscreen) | Persons: 
+Time 500ms | Count: 0 | Speaker: None (Offscreen) | Persons: 
+Time 1000ms | Count: 1 | Speaker: None (Offscreen) | Persons: id:1 gender:None speaking:False, id:2 gender:None speaking:False
+Time 1500ms | Count: 2 | Speaker: 1 (Onscreen) | Persons: id:1 gender:None speaking:True, id:5 gender:None speaking:False
+Time 2000ms | Count: 2 | Speaker: 1 (Onscreen) | Persons: id:1 gender:None speaking:True, id:5 gender:None speaking:True
+Time 2500ms | Count: 3 | Speaker: 1 (Onscreen) | Persons: id:1 gender:None speaking:True, id:5 gender:None speaking:True, id:6 gender:None speaking:False
+Time 3000ms | Count: 3 | Speaker: 1 (Onscreen) | Persons: id:1 gender:None speaking:True, id:5 gender:None speaking:True
+Time 3500ms | Count: 4 | Speaker: 1 (Onscreen) | Persons: id:1 gender:None speaking:True, id:5 gender:None speaking:False, id:6 gender:None speaking:True, id:9 gender:None speaking:False
+Time 4000ms | Count: 5 | Speaker: 1 (Onscreen) | Persons: id:1 gender:None speaking:True, id:5 gender:None speaking:False, id:6 gender:None speaking:True, id:10 gender:None speaking:False
+Time 4500ms | Count: 5 | Speaker: 1 (Onscreen) | Persons: id:1 gender:None speaking:True, id:5 gender:None speaking:False, id:10 gender:None speaking:True
+Time 5000ms | Count: 5 | Speaker: 1 (Onscreen) | Persons: id:1 gender:None speaking:True, id:5 gender:None speaking:False, id:9 gender:None speaking:True, id:10 gender:None speaking:True
+Time 5500ms | Count: 5 | Speaker: 6 (Onscreen) | Persons: id:6 gender:None speaking:True, id:9 gender:None speaking:True, id:10 gender:None speaking:True
+Time 6000ms | Count: 5 | Speaker: 1 (Onscreen) | Persons: id:1 gender:None speaking:True, id:10 gender:None speaking:False
