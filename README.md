@@ -22,3 +22,8 @@ Windows  - CMD
 ### 3. Pakete aus requirements.txt installieren
 pip install -r requirements.txt
 
+### 4. Für die Audio Diarization wird ein Huggingface Token benötigt
+in die ".env" - Datei eintragen
+
+### 5. ffmpeg muss auf dem System installiert werden
+https://www.ffmpeg.org/
