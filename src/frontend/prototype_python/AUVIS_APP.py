@@ -18,7 +18,7 @@ class VideoPlayer(QWidget):
 
 
         self.setWindowTitle("Videoplayer mit Transkription")
-        self.setGeometry(200, 200, 800, 600)
+        self.setGeometry(200, 200, 1000, 800)
 
         self.media_player = QMediaPlayer()
         self.audio_output = QAudioOutput()
@@ -76,7 +76,7 @@ class VideoPlayer(QWidget):
         file_path, _ = file_dialog.getOpenFileName(self, "Videodatei öffnen", "", "Video Files (*.mp4 *.avi *.mkv, *.mov)")
         if file_path:
             self.media_player.setSource(QUrl.fromLocalFile(file_path))
-            self.media_player.play()
+            # self.media_player.play()
 
     def update_position(self, position):
         self.slider.setValue(position)
