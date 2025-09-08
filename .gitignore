@@ -1,5 +1,6 @@
 .venv
 venv
 /.idea/
-/team_c/data-bin/
+/team_c/data-bin/dev
+/team_c/data-bin/output
 
