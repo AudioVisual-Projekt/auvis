@@ -6,7 +6,7 @@ import glob
 # Add src to path
 os.sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
-from src.cluster.conv_spks import (
+from team_c.src.cluster.conv_spks import (
     get_speaker_activity_segments,
     calculate_conversation_scores,
     cluster_speakers,
