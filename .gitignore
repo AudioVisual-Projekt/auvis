@@ -9,4 +9,4 @@ venv
 /team_b/model-bin
 /team_b/data-bin
 /team_b/wandb
-/team_b/settings.json
+/team_b/mcorec_baseline/settings.json
