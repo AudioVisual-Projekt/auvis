@@ -4,3 +4,9 @@ venv
 /team_c/data-bin/dev
 /team_c/data-bin/output
 
+# Git ignore for team_b
+/team_b/cache/*
+/team_b/model-bin
+/team_b/data-bin
+/team_b/wandb
+/team_b/settings.json
