@@ -86,6 +86,10 @@ def pairwise_f1_score_per_speaker(true_labels: List[int], pred_labels: List[int]
 
     return scores
 
+
+
+
+
 if __name__ == "__main__":
     # Example usage
     examples: List[Tuple[List[int], List[int]]] = [

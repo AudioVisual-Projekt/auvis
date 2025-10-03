@@ -12,8 +12,6 @@ from sklearn.metrics import adjusted_rand_score
 from tqdm import tqdm
 import traceback
 
-
-
 MAX_SPEAKERS = 8
 MAX_CONVERSATIONS = 4
 
@@ -42,27 +40,25 @@ def validate_speaker_segments(speaker_segments: Dict[str, List[Tuple[float, floa
             if start >= end:
                 raise ValueError(f"Invalid time segment for speaker {spk_id}: start ({start}) >= end ({end})")
 
-
-
-def calculate_overlap_duration(segments1: List[Tuple[float, float]],
+def calculate_overlap_duration(segments1: List[Tuple[float, float]], 
                              segments2: List[Tuple[float, float]]) -> Tuple[float, float]:
     """
     Calculate total overlap and non-overlap duration between two speakers' segments.
-
+    
     Args:
         segments1: List of (start, end) tuples for first speaker
         segments2: List of (start, end) tuples for second speaker
-
+        
     Returns:
         Tuple of (total_overlap_duration, total_non_overlap_duration)
     """
     total_overlap = 0.0
     total_non_overlap = 0.0
-
+    
     # Calculate total duration of each speaker's segments
     total_duration1 = sum(end - start for start, end in segments1)
     total_duration2 = sum(end - start for start, end in segments2)
-
+    
     # Calculate overlaps
     for start1, end1 in segments1:
         for start2, end2 in segments2:
@@ -71,10 +67,10 @@ def calculate_overlap_duration(segments1: List[Tuple[float, float]],
             overlap_end = min(end1, end2)
             if overlap_end > overlap_start:
                 total_overlap += overlap_end - overlap_start
-
+    
     # Calculate non-overlap
     total_non_overlap = total_duration1 + total_duration2 - 2 * total_overlap
-
+    
     return total_overlap, total_non_overlap
 
 def calculate_conversation_scores(speaker_segments: Dict[str, List[Tuple[float, float]]]) -> np.ndarray:

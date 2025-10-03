@@ -65,11 +65,11 @@ def calculate_conversation_scores(
     Args:
         speaker_segments: Dict {speaker_id -> [(start, end), ...]}
         non_linear: transformation of Overlap-Ratio ('sigmoid', 'log', None)
-        tolerance: ignore small overlaps
+        tolerance: ignore small overlaps (i.e. overlap < tolerance in sec)
         weight_by_length: longer speech segments get higher weight
 
     Returns:
-        NxN numpy array of conversation scores (1 = same conversation, 0 = different conversation)
+        NxN numpy array of conversation scores (values between 0 and 1: 1 = same conversation, 0 = different conversation)
     """
     n_speakers = len(speaker_segments)
     scores = np.zeros((n_speakers, n_speakers))
@@ -100,6 +100,7 @@ def calculate_conversation_scores(
             if non_linear == "sigmoid":
                 score = 1 / (1 + np.exp(-10 * (score - 0.5)))  # steilere Mitte
             elif non_linear == "log":
+                score = np.clip(score, 0.0, 1.0)
                 score = np.log1p(score) / np.log(2)  # log-skaliert [0..1]
 
             scores[i, j] = score
