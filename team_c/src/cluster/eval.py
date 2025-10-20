@@ -90,7 +90,7 @@ def pairwise_f1_score_per_speaker(true_labels: List[int], pred_labels: List[int]
     return scores
 
 
-def plot_and_save_clustered_segs(all_spk_segs, all_true_clusters, all_pred_clusters):
+def plot_and_save_clustered_segs(all_session_names, all_spk_segs, all_true_clusters, all_pred_clusters):
     '''
     Plottet die Sprechersegmente auf der Zeitachse,
     Farbcodierung der Sprecher gemäß Clusterzugehörigkeit
@@ -98,6 +98,10 @@ def plot_and_save_clustered_segs(all_spk_segs, all_true_clusters, all_pred_clust
 
     Args:
         (werden übernommen aus der inference:  inference_result = inference() )
+
+        all_session_names
+        all_session_names ist eine Series mit Index = Session und Value = session_name
+
         all_spk_segs = inference_result['session_speaker_segments']
         all_spk_segs ist eine Series mit Index = Session und Value = dict(speaker -> List of Lists mit jeweils Start und Ende des Sprechsegments)
         z.B. {'spk_0': [[3.65, 10.21], [10.25, 17.17], [18.37, 27.61], [27.65, 36.89],'spk_0': [[...]...]...}
@@ -111,6 +115,8 @@ def plot_and_save_clustered_segs(all_spk_segs, all_true_clusters, all_pred_clust
     Returns:
         None
     '''
+
+    session_names = dict(zip(all_spk_segs.index, all_session_names))
 
     # bringe die all_spk_segs Series in einen DataFrame all_spk_segs_df der Form:
     #         session     speaker     start       end
@@ -185,7 +191,7 @@ def plot_and_save_clustered_segs(all_spk_segs, all_true_clusters, all_pred_clust
         ax.set_title(f"Farbkodierung nach predicted Clusters")
 
         # Gemeinsamer Titel für den ganzen Plot
-        fig.suptitle(f"Sprecher-Segmente mit zwei verschiedenen Clusterzuordnungen {session_id}",
+        fig.suptitle(f"Sprecher-Segmente mit zwei verschiedenen Clusterzuordnungen {session_names[session_id]}",
                      fontsize=14, weight="bold")
 
         plt.tight_layout(rect=[0, 0, 1, 0.95])  # Platz für den gemeinsamen Titel lassen
@@ -228,6 +234,9 @@ if __name__ == "__main__":
     # Get inference_result data:
     inference_result = run_inference()
 
+    # Get session names from inference_result data:
+    all_session_names = inference_result['session_name']
+
     # Get speaker segments from inference_result data:
     all_spk_segs = inference_result['session_speaker_segments']
 
@@ -237,4 +246,4 @@ if __name__ == "__main__":
     # Get predictid cluster labels from inference_result data:
     all_pred_clusters = inference_result['pred_clusters']
 
-    plot_and_save_clustered_segs(all_spk_segs, all_true_clusters, all_pred_clusters)
+    plot_and_save_clustered_segs(all_session_names, all_spk_segs, all_true_clusters, all_pred_clusters)
