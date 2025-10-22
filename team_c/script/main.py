@@ -22,7 +22,7 @@ class InferenceEngine:
         self.max_length = max_length
 
 
-    def mcorec_session_infer(self, session_dir, output_dir):
+    def mcorec_session_infer(self, session_dir, output_dir, threshold: float = 0.7):
         """Process a complete MCoReC session"""
         # Load session metadata
         session_dir2 = session_dir
@@ -44,7 +44,7 @@ class InferenceEngine:
             speaker_segments[speaker_name] = speaker_activity_segments
 
         scores = calculate_conversation_scores(speaker_segments)
-        clusters = cluster_speakers(scores, list(speaker_segments.keys()))
+        clusters = cluster_speakers(scores, list(speaker_segments.keys()), threshold=threshold)
         output_clusters_file = os.path.join(output_dir,
                                             "speaker_to_cluster.json")
         with open(output_clusters_file, "w") as f:
@@ -56,7 +56,7 @@ def read_cluster_labels_from_json(label_path):
         label_data = json.load(f)
     return label_data
 
-def inference() -> pd.DataFrame:
+def inference(cluster_threshold: float = 0.7) -> pd.DataFrame:
     parser = argparse.ArgumentParser(
         description="Unified inference script for multiple AVSR models"
     )
@@ -104,8 +104,13 @@ def inference() -> pd.DataFrame:
         print(f"Processing session {session_name}")
 
         session_true_clusters = read_cluster_labels_from_json(label_dir)
-        session_scores, session_pred_clusters, session_speaker_segments = engine.mcorec_session_infer(session_dir, output_dir)
-        result.append({"session_name": session_name, "true_clusters": session_true_clusters, "pred_clusters": session_pred_clusters, "session_scores": session_scores, "session_speaker_segments": session_speaker_segments})
+        session_scores, session_pred_clusters, session_speaker_segments = engine.mcorec_session_infer(session_dir, output_dir, threshold=cluster_threshold)
+        result.append({"session_name": session_name,
+                       "true_clusters": session_true_clusters,
+                       "pred_clusters": session_pred_clusters,
+                       "session_scores": session_scores,
+                       "session_speaker_segments": session_speaker_segments
+                       })
 
     return pd.DataFrame(result)
 if __name__ == '__main__':

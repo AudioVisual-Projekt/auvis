@@ -90,6 +90,8 @@ def pairwise_f1_score_per_speaker(true_labels: List[int], pred_labels: List[int]
     return scores
 
 
+
+
 def plot_and_save_clustered_segs(all_session_names, all_spk_segs, all_true_clusters, all_pred_clusters):
     '''
     Plottet die Sprechersegmente auf der Zeitachse,
@@ -200,9 +202,9 @@ def plot_and_save_clustered_segs(all_session_names, all_spk_segs, all_true_clust
         plt.savefig(f"plot_case_{session_id}.png", dpi=150)
         plt.close(fig)  # Speicher freigeben
 
-def run_inference(): # zur Vermeidung eines zirkulären Importerrors
+def run_inference(cluster_threshold: float = 0.7): # zur Vermeidung eines zirkulären Importerrors
     from team_c.script.main import inference
-    return inference()
+    return inference(cluster_threshold)
 
 
 if __name__ == "__main__":
