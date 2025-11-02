@@ -4,8 +4,7 @@ import pandas as pd
 from sklearn.metrics import adjusted_rand_score
 from sklearn.cluster import AgglomerativeClustering
 from typing import Dict, List
-import matplotlib.pyplot as plt
-from team_c.src.cluster.eval import pairwise_f1_score, pairwise_f1_score_per_speaker  # changed absolute path
+from team_c.src.cluster.eval import pairwise_f1_score, pairwise_f1_score_per_speaker, plot_and_save_clustered_segs # changed absolute path
 from team_c.script.main import inference
 from team_c.src.cluster.new_score_calc import calculate_overlap_duration, calculate_conversation_scores
 
@@ -203,4 +202,5 @@ if __name__ == "__main__":
     df_grid_search_preprocess_and_cluster = grid_search_preprocessing_and_clustering(result)
     print(df_grid_search_preprocess_and_cluster.head(10))
     df_grid_search_preprocess_and_cluster.to_csv("df_grid_search_preprocess_and_cluster.csv", sep=";", index=True, encoding="utf-8-sig")
+
 
