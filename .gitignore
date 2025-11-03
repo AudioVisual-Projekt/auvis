@@ -1,6 +1,11 @@
 .venv
 venv
 /.idea/
+/team_c/data-bin/train
 /team_c/data-bin/dev
 /team_c/data-bin/output
-
+/team_c/src/cluster/merged_segs.csv
+/team_c/src/cluster/my_segs.csv
+/team_c/src/cluster/my_segs_0.xlsx
+/team_c/src/cluster/df_grid_search__preprocess_and_cluster.xlsx
+/team_c/src/cluster/df_grid_search_preprocess_and_cluster.xlsx

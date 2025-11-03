@@ -2,6 +2,7 @@ import os
 import argparse
 import json
 import glob
+import pandas as pd
 
 # Add src to path
 os.sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__))))
@@ -21,7 +22,7 @@ class InferenceEngine:
         self.max_length = max_length
 
 
-    def mcorec_session_infer(self, session_dir, output_dir):
+    def mcorec_session_infer(self, session_dir, output_dir, threshold: float = 0.7):
         """Process a complete MCoReC session"""
         # Load session metadata
         session_dir2 = session_dir
@@ -43,14 +44,19 @@ class InferenceEngine:
             speaker_segments[speaker_name] = speaker_activity_segments
 
         scores = calculate_conversation_scores(speaker_segments)
-        clusters = cluster_speakers(scores, list(speaker_segments.keys()))
+        clusters = cluster_speakers(scores, list(speaker_segments.keys()), threshold=threshold)
         output_clusters_file = os.path.join(output_dir,
                                             "speaker_to_cluster.json")
         with open(output_clusters_file, "w") as f:
             json.dump(clusters, f, indent=4)
+        return scores, clusters, speaker_segments
 
+def read_cluster_labels_from_json(label_path):
+    with open(os.path.join(label_path, "speaker_to_cluster.json"), "r") as f:
+        label_data = json.load(f)
+    return label_data
 
-def main():
+def inference(cluster_threshold: float = 0.7) -> pd.DataFrame:
     parser = argparse.ArgumentParser(
         description="Unified inference script for multiple AVSR models"
     )
@@ -78,7 +84,7 @@ def main():
     print(f"Inferring {len(all_session_dirs)} sessions using NO model")
 
     engine = InferenceEngine()
-
+    result = []
     for session_dir in all_session_dirs:
         # Session-Name robust extrahieren
         session_name = os.path.basename(os.path.normpath(session_dir))
@@ -86,6 +92,7 @@ def main():
         # data-bin finden
         data_bin_dir = os.path.dirname(os.path.dirname(session_dir))
         output_base = os.path.join(data_bin_dir, args.output_dir_name)
+        label_dir = os.path.join(session_dir,"labels")
 
         # Ziel: .../data-bin/output/session_xyz
         output_dir = os.path.join(output_base, session_name)
@@ -96,9 +103,17 @@ def main():
         os.makedirs(output_dir, exist_ok=True)
         print(f"Processing session {session_name}")
 
-        engine.mcorec_session_infer(session_dir, output_dir)
+        session_true_clusters = read_cluster_labels_from_json(label_dir)
+        session_scores, session_pred_clusters, session_speaker_segments = engine.mcorec_session_infer(session_dir, output_dir, threshold=cluster_threshold)
+        result.append({"session_name": session_name,
+                       "true_clusters": session_true_clusters,
+                       "pred_clusters": session_pred_clusters,
+                       "session_scores": session_scores,
+                       "session_speaker_segments": session_speaker_segments
+                       })
 
-
+    return pd.DataFrame(result)
 if __name__ == '__main__':
-    main()
+    result = inference()
+    print(result.iloc[0]['pred_clusters'])
 

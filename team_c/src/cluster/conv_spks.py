@@ -6,8 +6,8 @@ from typing import List, Tuple, Dict
 from sklearn.cluster import AgglomerativeClustering
 import json
 import glob
-from src.cluster.eval import pairwise_f1_score, pairwise_f1_score_per_speaker  # changed absolute path
-from src.talking_detector.segmentation import segment_by_asd  # changed absolute path
+from team_c.src.cluster.eval import pairwise_f1_score, pairwise_f1_score_per_speaker  # changed absolute path
+from team_c.src.talking_detector.segmentation import segment_by_asd  # changed absolute path
 from sklearn.metrics import adjusted_rand_score
 from tqdm import tqdm
 import traceback
