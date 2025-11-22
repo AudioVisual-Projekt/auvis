@@ -3,14 +3,22 @@ import argparse
 import json
 import glob
 
-# Add src to path
-os.sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__))))
+# Pfad: .../task5_semantic_prototype/auvis/team_c/script
+# -> eine Ebene hoch: .../team_c
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Semantische Daten liegen in: .../team_c/data-bin
+TEAMC_DATABIN = os.path.join(PROJECT_ROOT, "data-bin")
 
-from team_c.src.cluster.conv_spks import (
+# src auf sys.path legen
+os.sys.path.append(os.path.join(PROJECT_ROOT))
+
+from src.cluster.conv_spks import (
     get_speaker_activity_segments,
     calculate_conversation_scores,
     cluster_speakers,
-    get_clustering_f1_score
+    get_clustering_f1_score,
+    semantic_cluster_speakers,
+    hybrid_cluster_speakers,
 )
 
 
@@ -20,85 +28,113 @@ class InferenceEngine:
     def __init__(self, max_length=15):
         self.max_length = max_length
 
-
     def mcorec_session_infer(self, session_dir, output_dir):
         """Process a complete MCoReC session"""
-        # Load session metadata
-        session_dir2 = session_dir
 
+        # ---- 1) Session-Metadaten laden ----
         with open(os.path.join(session_dir, "metadata.json"), "r", encoding="utf-8") as f:
             metadata = json.load(f)
 
-        # Process speaker clustering
+        # ---- 2) Sprecher-Segmente aus ASD holen ----
         speaker_segments = {}
         for speaker_name, speaker_data in metadata.items():
-            list_tracks_asd = []
-            for track in speaker_data['central']['crops']:
-                list_tracks_asd.append(
-                    os.path.join(session_dir, track['asd']))
-            uem_start = speaker_data['central']['uem']['start']
-            uem_end = speaker_data['central']['uem']['end']
+            list_tracks_asd = [
+                os.path.join(session_dir, track["asd"])
+                for track in speaker_data["central"]["crops"]
+            ]
+
+            uem_start = speaker_data["central"]["uem"]["start"]
+            uem_end = speaker_data["central"]["uem"]["end"]
+
             speaker_activity_segments = get_speaker_activity_segments(
-                list_tracks_asd, uem_start, uem_end)
+                list_tracks_asd, uem_start, uem_end
+            )
             speaker_segments[speaker_name] = speaker_activity_segments
 
-        scores = calculate_conversation_scores(speaker_segments)
-        clusters = cluster_speakers(scores, list(speaker_segments.keys()))
-        output_clusters_file = os.path.join(output_dir,
-                                            "speaker_to_cluster.json")
-        with open(output_clusters_file, "w") as f:
-            json.dump(clusters, f, indent=4)
+        # Sprecherreihenfolge fixieren
+        speaker_ids = list(speaker_segments.keys())
+
+        # Session-Name (für IDs wie dev0001_SPK01 wichtig)
+        session_name = os.path.basename(os.path.normpath(session_dir))
+
+        # ---- 3) Baseline: Zeit-basiertes Clustering ----
+        scores_time = calculate_conversation_scores(speaker_segments)
+        clusters_time = cluster_speakers(scores_time, speaker_ids)
+
+        with open(os.path.join(output_dir, "speaker_to_cluster_time.json"), "w") as f:
+            json.dump(clusters_time, f, indent=4)
+
+        # ---- 4) Rein semantisches Clustering ----
+        clusters_semantic = semantic_cluster_speakers(
+            data_dir=TEAMC_DATABIN,          # <<-- WICHTIG: immer team_c/data-bin
+            session_name=session_name,
+            speaker_names=speaker_ids,
+        )
+
+        with open(
+            os.path.join(output_dir, "speaker_to_cluster_semantic.json"), "w"
+        ) as f:
+            json.dump(clusters_semantic, f, indent=4)
+
+        # ---- 5) Hybrid-Clustering (Zeit + Semantik) ----
+        clusters_hybrid = hybrid_cluster_speakers(
+            speaker_segments=speaker_segments,
+            data_dir=TEAMC_DATABIN,          # <<-- ebenfalls team_c/data-bin
+            session_name=session_name,
+            alpha=0.5,
+        )
+
+        with open(
+            os.path.join(output_dir, "speaker_to_cluster_hybrid.json"), "w"
+        ) as f:
+            json.dump(clusters_hybrid, f, indent=4)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Unified inference script for multiple AVSR models"
+        description="Unified inference script for conversation clustering (Zeit / Semantik / Hybrid)"
     )
     parser.add_argument(
-        '--session_dir',
+        "--session_dir",
         type=str,
-        default='data-bin/dev/session_*',
-        help='Glob path to session directories (supports *)'
+        required=True,
+        help="Glob-Pfad zu den MCoRec-Session-Ordnern, z. B. '../../mcorec_baseline/data-bin/dev/session_*'",
     )
     parser.add_argument(
-        '--output_dir_name',
+        "--output_dir_name",
         type=str,
-        default='output',
-        help='Name of the output directory at the data-bin level'
+        default="output_semantic",
+        help="Name des Output-Ordners unterhalb von team_c/data-bin",
     )
     args = parser.parse_args()
 
-    # Projekt-Root bestimmen
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    session_dir_arg = os.path.join(project_root, args.session_dir)
+    # Session-Glob relativ zum PROJECT_ROOT (team_c) interpretieren
+    session_dir_arg = os.path.join(PROJECT_ROOT, args.session_dir)
 
     # Alle Session-Dirs sammeln
     all_session_dirs = [p for p in glob.glob(session_dir_arg) if os.path.isdir(p)]
 
-    print(f"Inferring {len(all_session_dirs)} sessions using NO model")
+    print(f"Inferring {len(all_session_dirs)} sessions using time / semantic / hybrid clustering")
+    if not all_session_dirs:
+        print(f"⚠ Keine Sessions gefunden für Pattern: {session_dir_arg}")
 
     engine = InferenceEngine()
 
+    # Outputs nach team_c/data-bin/<output_dir_name>/session_xxx schreiben
+    output_base = os.path.join(TEAMC_DATABIN, args.output_dir_name)
+
     for session_dir in all_session_dirs:
-        # Session-Name robust extrahieren
         session_name = os.path.basename(os.path.normpath(session_dir))
-
-        # data-bin finden
-        data_bin_dir = os.path.dirname(os.path.dirname(session_dir))
-        output_base = os.path.join(data_bin_dir, args.output_dir_name)
-
-        # Ziel: .../data-bin/output/session_xyz
         output_dir = os.path.join(output_base, session_name)
 
         print("Session dir:", session_dir)
         print("Output dir will be:", output_dir)
 
         os.makedirs(output_dir, exist_ok=True)
-        print(f"Processing session {session_name}")
 
+        print(f"Processing session {session_name}")
         engine.mcorec_session_infer(session_dir, output_dir)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-
