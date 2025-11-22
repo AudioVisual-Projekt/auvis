@@ -1,0 +1,5 @@
+data-bin/D.npy
+data-bin/output_semantic_test/
+data-bin/reports/
+__pycache__/
+*.pyc
