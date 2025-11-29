@@ -1,0 +1,6 @@
+1. Ordner erstellen, in dem die Conda-Umgebung(en) gespeichert werden soll(en): z.B. /home/fh-kuerzel/Projekt/conda_env
+2. Conda-Umgebung in diesem Ordner erstellen mit dem Namen der Umgebung erstellen und optional zusätzliche Attribute wie die Python-Version setzen: 
+    conde create --prefix /home/fh-kuerzel/Projekt/conda_env/env_name python=3.11
+3. Conda-Umgebung aktivieren: conda activate /home/fh-kuerzel/Projekt/conda_env/env_name
+
+Für MCoRec: conda activate /home/fh-kuerzel/Projektgruppe/mcorec/conda_env/mcorec
