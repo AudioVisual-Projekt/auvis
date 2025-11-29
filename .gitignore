@@ -3,4 +3,5 @@ venv
 /.idea/
 /team_c/data-bin/dev
 /team_c/data-bin/output
-
+.ipynb_checkpoints/
+__pycache__/
