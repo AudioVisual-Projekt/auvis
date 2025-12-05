@@ -3,6 +3,8 @@ import argparse
 import json
 import glob
 import pandas as pd
+from team_c.src.cluster.dendrogramme import plot_colored_dendrograms_for_run
+from team_c.src.talking_detector.segmentation import CENTRAL_ASD_CHUNKING_PARAMETERS
 
 # Add src to path
 os.sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__))))
@@ -22,7 +24,7 @@ class InferenceEngine:
         self.max_length = max_length
 
 
-    def mcorec_session_infer(self, session_dir, output_dir):
+    def mcorec_session_infer(self, session_dir, output_dir, threshold: float = 0.7):
         """Process a complete MCoReC session"""
         # Load session metadata
         session_dir2 = session_dir
@@ -44,7 +46,7 @@ class InferenceEngine:
             speaker_segments[speaker_name] = speaker_activity_segments
 
         scores = calculate_conversation_scores(speaker_segments)
-        clusters = cluster_speakers(scores, list(speaker_segments.keys()))
+        clusters = cluster_speakers(scores, list(speaker_segments.keys()), threshold=threshold)
         output_clusters_file = os.path.join(output_dir,
                                             "speaker_to_cluster.json")
         with open(output_clusters_file, "w") as f:
@@ -56,13 +58,14 @@ def read_cluster_labels_from_json(label_path):
         label_data = json.load(f)
     return label_data
 
-def inference() -> pd.DataFrame:
+def inference(cluster_threshold: float = 0.74) -> pd.DataFrame:
     parser = argparse.ArgumentParser(
         description="Unified inference script for multiple AVSR models"
     )
     parser.add_argument(
         '--session_dir',
         type=str,
+        # default='data-bin/train/session_*',
         default='data-bin/dev/session_*',
         help='Glob path to session directories (supports *)'
     )
@@ -104,11 +107,24 @@ def inference() -> pd.DataFrame:
         print(f"Processing session {session_name}")
 
         session_true_clusters = read_cluster_labels_from_json(label_dir)
-        session_scores, session_pred_clusters, session_speaker_segments = engine.mcorec_session_infer(session_dir, output_dir)
-        result.append({"session_name": session_name, "true_clusters": session_true_clusters, "pred_clusters": session_pred_clusters, "session_scores": session_scores, "session_speaker_segments": session_speaker_segments})
+        session_scores, session_pred_clusters, session_speaker_segments = engine.mcorec_session_infer(session_dir, output_dir, threshold=cluster_threshold)
+        result.append({"session_name": session_name,
+                       "true_clusters": session_true_clusters,
+                       "pred_clusters": session_pred_clusters,
+                       "session_scores": session_scores,
+                       "session_speaker_segments": session_speaker_segments
+                       })
 
     return pd.DataFrame(result)
 if __name__ == '__main__':
-    result = inference()
-    print(result.iloc[0]['pred_clusters'])
+    #### Beste Parameter fürs Clustering festlegen:
+    threshold = 0.74
+    CENTRAL_ASD_CHUNKING_PARAMETERS.update({
+        "onset": 1.2,
+        "offset": 1.0,
+        "min_duration_on": 1.5,
+        "min_duration_off": 0.5,
+    })
+    result = inference(threshold)
+
 
