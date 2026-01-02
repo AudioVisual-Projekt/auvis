@@ -1,5 +1,5 @@
 import itertools
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Iterable
 from sklearn.metrics import adjusted_rand_score
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -88,6 +88,56 @@ def pairwise_f1_score_per_speaker(true_labels: List[int], pred_labels: List[int]
         scores[i] = f1
 
     return scores
+
+def joint_asr_cluster_error_rate_per_speaker(speaker_wer: Dict[str, float], per_speaker_cluster_f1: Dict[str, float]) -> Dict[str, float]:
+    spk_list = list(speaker_wer.keys())
+    joint_error_rate = {
+        spk: round(
+            0.5 * speaker_wer[spk] + 0.5 * (1 - per_speaker_cluster_f1[spk]),
+            4
+        )
+        for spk in spk_list
+    }
+    return joint_error_rate
+
+
+
+def global_mean_joint_asr_cluster_error_rate(joint_error_rates: Iterable[Dict[str, float]]) -> float:
+    '''
+    berechnet aus allen joint_error_rate dicts der einzelnen Sessions den globalen Mittelwert
+    Aufruf: mean_joint_asr_cluster_error_rate([d1, d2, ... , dn])
+    mit d1 = joint_asr_cluster_error_rate_per_speaker_session_1
+        d2 = joint_asr_cluster_error_rate_per_speaker_session_2 etc.
+        dn = joint_asr_cluster_error_rate_per_speaker_session_n
+    '''
+    values = [v for joint_error_rate in joint_error_rates for v in joint_error_rate.values()]
+    return sum(values) / len(values)
+
+def compute_macro_micro_f1_per_speaker(true_labels: List[int], pred_labels: List[int]) -> Dict[str, float]:
+    per_speaker_f1 = pairwise_f1_score_per_speaker(true_labels, pred_labels)
+    macro_f1 = sum(per_speaker_f1.values()) / len(per_speaker_f1)
+
+    # Micro-F1
+    n = len(true_labels)
+    total_tp = total_fp = total_fn = 0
+    for i in range(n):
+        for j in range(i + 1, n):
+            true_same = (true_labels[i] == true_labels[j])
+            pred_same = (pred_labels[i] == pred_labels[j])
+            if pred_same and true_same:
+                total_tp += 1
+            elif pred_same and not true_same:
+                total_fp += 1
+            elif not pred_same and true_same:
+                total_fn += 1
+    if total_tp == 0:
+        micro_f1 = 0.0
+    else:
+        precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0.0
+        recall = total_tp / (total_tp + total_fn) if (total_tp + total_fn) > 0 else 0.0
+        micro_f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+
+    return {"macro_f1_per_speaker": macro_f1, "micro_f1_per_speaker": micro_f1}
 
 
 def plot_and_save_clustered_segs(all_session_names, all_spk_segs, all_true_clusters, all_pred_clusters):
@@ -200,9 +250,9 @@ def plot_and_save_clustered_segs(all_session_names, all_spk_segs, all_true_clust
         plt.savefig(f"plot_case_{session_id}.png", dpi=150)
         plt.close(fig)  # Speicher freigeben
 
-def run_inference(): # zur Vermeidung eines zirkulären Importerrors
+def run_inference(cluster_threshold: float = 0.7): # zur Vermeidung eines zirkulären Importerrors
     from team_c.script.main import inference
-    return inference()
+    return inference(cluster_threshold)
 
 
 if __name__ == "__main__":
@@ -247,3 +297,7 @@ if __name__ == "__main__":
     all_pred_clusters = inference_result['pred_clusters']
 
     plot_and_save_clustered_segs(all_session_names, all_spk_segs, all_true_clusters, all_pred_clusters)
+
+
+
+
