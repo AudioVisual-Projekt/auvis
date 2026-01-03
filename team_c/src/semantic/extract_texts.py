@@ -1,71 +1,149 @@
 """
-Extrahiert Text aus den .vtt-Dateien der CHiME-9 MCoRec Challenge (z. B. dev-Split)
+Extrahiert Text aus den *System*-Hypothesen (.vtt) der CHiME-9 MCoRec Baseline
 und schreibt sie in ein einheitliches JSON-Format mit IDs + Texten.
+
+Wichtig:
+- Liest NICHT aus `labels/` (Ground Truth), sondern aus `output/` (Baseline-Hypothesen).
+- baseline_dir kann entweder
+  (a) ein Split-Ordner sein (enthält session_*), oder
+  (b) ein einzelner Session-Ordner (z. B. .../session_40).
 
 Beispiel:
 python extract_texts.py \
-  --input_dir /home/ercel001/AUVIS/mcorec_baseline/data-bin/dev \
-  --output_json /home/ercel001/AUVIS/task5_semantic_prototype/auvis/team_c/data-bin/dev_texts.json
+  --baseline_dir /home/ercel001/AUVIS/task5_semantic_prototype/auvis/team_c/data-bin/baseline/dev \
+  --output_json  /home/ercel001/AUVIS/task5_semantic_prototype/auvis/team_c/data-bin/_output/dev/semantik_clustering/dev_texts.json
 """
 
 import os
 import json
 import argparse
+from typing import List, Dict
 
-def read_vtt_file(path: str) -> list[str]:
-    """Liest eine .vtt-Datei ein und gibt alle Textzeilen (ohne Zeitstempel) zurück."""
-    lines = []
+
+def read_vtt_file(path: str) -> List[str]:
+    """
+    Liest eine .vtt-Datei ein und gibt Textzeilen zurück (ohne Zeitstempel und Header).
+    """
+    lines: List[str] = []
     with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("WEBVTT") or "-->" in line:
+        for raw in f:
+            line = raw.strip()
+            if not line:
                 continue
+
+            # Header / Metadaten
+            if line.startswith("WEBVTT"):
+                continue
+            if line.startswith(("NOTE", "STYLE", "REGION")):
+                continue
+            if "X-TIMESTAMP-MAP" in line:
+                continue
+
+            # Zeitstempelzeile
+            if "-->" in line:
+                continue
+
+            # Cue-ID (kommt je nach Generator vor)
+            if line.isdigit():
+                continue
+
             lines.append(line)
     return lines
 
-def collect_texts(input_dir: str) -> dict:
+
+def _list_sessions(baseline_dir: str) -> List[str]:
     """
-    Durchläuft alle Sessions unterhalb von input_dir und extrahiert pro Sprecher die Transkripte.
-    Gibt ein Dict mit Listen 'ids' und 'texts' zurück.
+    Liefert eine Liste von Session-Pfaden.
+    Unterstützt:
+    - Split-Ordner: .../dev (enthält session_*)
+    - Session-Ordner: .../dev/session_40
     """
-    all_ids, all_texts = [], []
-    for session in sorted(os.listdir(input_dir)):
-        session_path = os.path.join(input_dir, session)
-        labels_path = os.path.join(session_path, "labels")
-        if not os.path.isdir(labels_path):
+    if not os.path.isdir(baseline_dir):
+        raise FileNotFoundError(f"baseline_dir existiert nicht oder ist kein Ordner: {baseline_dir}")
+
+    base_name = os.path.basename(os.path.normpath(baseline_dir))
+    if base_name.startswith("session_"):
+        return [baseline_dir]
+
+    sessions = []
+    for s in sorted(os.listdir(baseline_dir)):
+        p = os.path.join(baseline_dir, s)
+        if s.startswith("session_") and os.path.isdir(p):
+            sessions.append(p)
+    return sessions
+
+
+def collect_texts(baseline_dir: str, output_dir_name: str = "output") -> Dict[str, List[str]]:
+    """
+    Extrahiert pro Session und pro Sprecher die Hypothesen-Transkripte aus:
+      <session>/<output_dir_name>/*.vtt
+    """
+    all_ids: List[str] = []
+    all_texts: List[str] = []
+
+    session_paths = _list_sessions(baseline_dir)
+
+    for session_path in session_paths:
+        session_name = os.path.basename(os.path.normpath(session_path))
+        output_path = os.path.join(session_path, output_dir_name)
+        if not os.path.isdir(output_path):
             continue
 
-        for file in sorted(os.listdir(labels_path)):
-            if not file.endswith(".vtt"):
-                continue
-            speaker_id = file.replace(".vtt", "")
-            file_path = os.path.join(labels_path, file)
+        vtts = sorted(
+            f for f in os.listdir(output_path)
+            if f.startswith("spk_") and f.endswith(".vtt")
+        )
+
+        for fn in vtts:
+            speaker_id = fn[:-4]  # "spk_0"
+            file_path = os.path.join(output_path, fn)
 
             texts = read_vtt_file(file_path)
             if not texts:
                 continue
 
-            joined_text = " ".join(texts)
-            uid = f"{session}_{speaker_id}"
-            all_ids.append(uid)
-            all_texts.append(joined_text)
+            joined = " ".join(texts).strip()
+            if not joined:
+                continue
 
-    print(f"✓ {len(all_texts)} Sprecher-Texte extrahiert.")
+            uid = f"{session_name}_{speaker_id}"
+            all_ids.append(uid)
+            all_texts.append(joined)
+
+    print(f"✓ {len(all_texts)} Sprecher-Texte extrahiert (aus '{output_dir_name}/').")
     return {"ids": all_ids, "texts": all_texts}
 
-def main():
+
+def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_dir", required=True, help="Pfad zum dev- oder train-Verzeichnis (z. B. data-bin/dev)")
-    parser.add_argument("--output_json", required=True, help="Zielpfad für die JSON-Datei")
+    parser.add_argument(
+        "--baseline_dir",
+        required=True,
+        help="Split-Ordner (.../dev) ODER einzelner Session-Ordner (.../dev/session_40).",
+    )
+    parser.add_argument(
+        "--output_json",
+        required=True,
+        help="Zielpfad für die JSON-Datei.",
+    )
+    parser.add_argument(
+        "--output_dir_name",
+        default="output",
+        help="Name des System-Output-Ordners pro Session (default: output).",
+    )
     args = parser.parse_args()
 
-    result = collect_texts(args.input_dir)
+    result = collect_texts(args.baseline_dir, output_dir_name=args.output_dir_name)
 
-    os.makedirs(os.path.dirname(args.output_json), exist_ok=True)
+    out_dir = os.path.dirname(args.output_json)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+
     with open(args.output_json, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
 
     print(f"→ JSON gespeichert unter: {args.output_json}")
+
 
 if __name__ == "__main__":
     main()

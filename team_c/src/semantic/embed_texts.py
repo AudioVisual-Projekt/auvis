@@ -1,9 +1,12 @@
-# embed_texts.py (final English-only version)
-import argparse, json, os
+# embed_texts.py
+import argparse
+import json
+import os
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from tqdm import trange
 import torch
+
 
 def load_items(path: str):
     """Unterstützt drei Schemata:
@@ -26,17 +29,25 @@ def load_items(path: str):
 
     raise ValueError("Unerwartetes JSON-Format (Liste | Dict['items'] | Dict['ids','texts']).")
 
-def pick_id(d):   return str(d.get("id"))
-def pick_text(d): return str(d.get("text", "")).strip()
+
+def pick_id(d):
+    return str(d.get("id"))
+
+
+def pick_text(d):
+    return str(d.get("text", "")).strip()
+
 
 def main():
-    ap = argparse.ArgumentParser(description="Erzeuge englische Sentence-Embeddings aus Transkripten (CHiME-9)")
-    ap.add_argument("--input_json", required=True, help="Pfad zur dev_texts.json")
-    ap.add_argument("--outdir", required=True, help="Zielverzeichnis (z. B. ../../data-bin)")
+    ap = argparse.ArgumentParser(description="Erzeuge Sentence-Embeddings aus Transkripten (CHiME-9)")
+    ap.add_argument("--input_json", required=True, help="Pfad zur JSON mit ids/texts")
+    ap.add_argument("--outdir", required=True, help="Zielverzeichnis (z. B. .../_output/dev/semantik_clustering)")
     ap.add_argument("--model", default="sentence-transformers/all-mpnet-base-v2",
-                    help="Englisches High-Quality-Modell (768-D)")
+                    help="Sentence-Transformer Modellname oder lokaler Pfad")
     ap.add_argument("--batch", type=int, default=1024, help="Batchgröße (GPU-abhängig)")
     ap.add_argument("--normalize", action="store_true", help="Embeddings auf L2-Norm=1 normalisieren")
+    ap.add_argument("--prefix", default="",
+                    help="Optionaler Dateiprefix (z. B. 'dev_') für zusätzliche Dateien")
     args = ap.parse_args()
 
     assert os.path.isfile(args.input_json), f"Datei nicht gefunden: {args.input_json}"
@@ -44,9 +55,11 @@ def main():
 
     print(f"→ Lade Items aus: {args.input_json}")
     items = load_items(args.input_json)
+
     pairs = [(pick_id(d), pick_text(d)) for d in items if pick_text(d)]
     if not pairs:
         raise ValueError("Keine gültigen Text-Einträge gefunden.")
+
     ids, texts = zip(*pairs)
     print(f"→ Einträge (nach Filter): {len(texts)}")
 
@@ -56,7 +69,7 @@ def main():
 
     embs = []
     for s in trange(0, len(texts), args.batch, desc="Embeddings"):
-        batch = texts[s:s+args.batch]
+        batch = texts[s:s + args.batch]
         embs.append(model.encode(
             batch,
             batch_size=len(batch),
@@ -66,14 +79,28 @@ def main():
         ))
     E = np.vstack(embs)
 
-    e_path  = os.path.join(args.outdir, "E.npy")
-    ids_path = os.path.join(args.outdir, "ids.json")
-    np.save(e_path, E)
-    with open(ids_path, "w", encoding="utf-8") as f:
+    # Standard-Artefakte (werden downstream erwartet)
+    e_std = os.path.join(args.outdir, "E.npy")
+    ids_std = os.path.join(args.outdir, "ids.json")
+
+    np.save(e_std, E)
+    with open(ids_std, "w", encoding="utf-8") as f:
         json.dump(list(ids), f, ensure_ascii=False, indent=2)
 
-    print(f"✓ Gespeichert: {e_path}  Shape={E.shape}")
-    print(f"✓ Gespeichert: {ids_path}  N={len(ids)}")
+    # Optional: zusätzliche prefixed Kopien (z. B. für Vergleichsläufe)
+    if args.prefix:
+        e_pref = os.path.join(args.outdir, f"{args.prefix}E.npy")
+        ids_pref = os.path.join(args.outdir, f"{args.prefix}ids.json")
+        np.save(e_pref, E)
+        with open(ids_pref, "w", encoding="utf-8") as f:
+            json.dump(list(ids), f, ensure_ascii=False, indent=2)
+
+    print(f"✓ Gespeichert: {e_std}  Shape={E.shape}")
+    print(f"✓ Gespeichert: {ids_std}  N={len(ids)}")
+    if args.prefix:
+        print(f"✓ Zusätzlich: {e_pref}")
+        print(f"✓ Zusätzlich: {ids_pref}")
+
 
 if __name__ == "__main__":
     main()

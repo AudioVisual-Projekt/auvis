@@ -3,3 +3,11 @@ data-bin/output_semantic_test/
 data-bin/reports/
 __pycache__/
 *.pyc
+# generated artifacts
+data-bin/_output/
+data-bin/baseline/
+*.npy
+data-bin/dev_texts.json
+data-bin/ids.json
+data-bin/E.npy
+
