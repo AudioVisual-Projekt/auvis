@@ -6,7 +6,7 @@ Handles the loading and preprocessing of session data.
 Implements an ETL (Extract, Transform, Load) pipeline with caching.
 
 The logic is:
-1. Check if a preprocessed JSON exists in 'data-bin/av_asd/_output/.../_preprocessed'.
+1. Check if a preprocessed JSON exists in 'data-bin/av_asd/_output/.../00_preprocessed'.
 2. If YES: Load it directly (Fast).
 3. If NO:
     - Extract: Load raw metadata and stitching ASD track files.
@@ -16,6 +16,7 @@ The logic is:
 
 import json
 import os
+import math
 from glob import glob
 from typing import Dict
 
@@ -33,10 +34,10 @@ def _get_project_root() -> str:
 def _get_preprocessed_path(dataset_name: str, session_id: str) -> str:
     """
     Constructs the path for the cached JSON file.
-    Structure: data-bin/av_asd/_output/<dataset>/_preprocessed/<session_id>.json
+    Structure: data-bin/av_asd/_output/<dataset>/00_preprocessed/<session_id>.json
     """
     root = _get_project_root()
-    output_dir = os.path.join(root, "data-bin", "_output", "av_asd", dataset_name, "_preprocessed")
+    output_dir = os.path.join(root, "data-bin", "_output", "av_asd", dataset_name, "00_preprocessed")
     os.makedirs(output_dir, exist_ok=True)
     return os.path.join(output_dir, f"{session_id}.json")
 
@@ -102,24 +103,32 @@ def _load_raw_session_data(session_folder: str, global_logger) -> SessionModel:
 def _apply_uem_cut(session: SessionModel, global_logger) -> SessionModel:
     """
     Internal helper: Removes all ASD scores that are outside the speaker's UEM range.
+    STRATEGY: Strict Inside.
+    - Start: Round UP (ceil). Don't include frames starting before UEM start.
+    - End: Round DOWN (floor). Don't include frames starting after UEM end.
     """
-    fps = 25.0  # Hardcoded standard for this dataset
+    fps = 25.0
 
     for spk_id, spk_data in session.input_data.items():
         start_time = spk_data.uem_start
         end_time = spk_data.uem_end
 
         if start_time == 0.0 and end_time == 0.0:
-            # Assume no UEM defined means "keep everything" or "invalid"?
-            # Usually strict UEM means we keep everything if 0-0 is not explicitly "empty".
             continue
 
         # Convert time to frames
-        start_frame = int(start_time * fps)
-        end_frame = int(end_time * fps)
 
-        # Filter logic: Keep only frames within [start, end]
-        # Using dict comprehension for efficiency
+        # START: Round UP (Ceiling) to avoid pre-speech noise.
+        # Example: Start 1.5s (at 25fps) = 37.5 frames -> Ceil -> Frame 38.
+        # Frame 37 starts at 1.48s (OUT). Frame 38 starts at 1.52s (IN).
+        start_frame = int(math.ceil(start_time * fps))
+
+        # END: Round DOWN (Floor).
+        # Example: End 2.5s (at 25fps) = 62.5 frames -> Floor -> Frame 62.
+        # Frame 62 starts at 2.48s (IN). Frame 63 starts at 2.52s (OUT/Whistle).
+        end_frame = int(math.floor(end_time * fps))
+
+        # Filter logic: Keep only frames strictly within [start_frame, end_frame]
         spk_data.asd_scores = {
             f: s for f, s in spk_data.asd_scores.items()
             if start_frame <= f <= end_frame
@@ -146,7 +155,7 @@ def _save_preprocessed_json(session: SessionModel, filepath: str):
         }
 
     with open(filepath, "w") as f:
-        json.dump(data, f)  # Minified JSON to save space (no indent)
+        json.dump(data, f, indent=2)  # needs more space if using indent!
 
 
 def _load_preprocessed_json(filepath: str) -> SessionModel:

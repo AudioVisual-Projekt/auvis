@@ -114,6 +114,20 @@ class SegmentationExperimentModel:
         # Container for calculation results to allow in-memory access/debugging
         self.results: dict[str, SegmentationResult] = {}
 
+    @property
+    def segments_dir(self) -> str:
+        """Sub-directory for segmentation results (.json)."""
+        path = os.path.join(self.output_dir, "segments")
+        os.makedirs(path, exist_ok=True)
+        return path
+
+    @property
+    def matrices_dir(self) -> str:
+        """Sub-directory for distance matrices (.json)."""
+        path = os.path.join(self.output_dir, "matrices")
+        os.makedirs(path, exist_ok=True)
+        return path
+
     def experiment_logger(self):
         """
         Context Manager: Sets up the local logger for this specific experiment.

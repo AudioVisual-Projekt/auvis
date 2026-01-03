@@ -69,7 +69,7 @@ def main():
     dataset = "dev"  # dev | train
 
     session_dir = f"data-bin\\{dataset}\\session_*"
-    output_dir = f"_output\\{dataset}"
+    output_dir = f"output\\{dataset}"
 
     # determine project root
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
