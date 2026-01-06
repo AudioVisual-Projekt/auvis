@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -19,17 +20,18 @@ TEAM_C_ROOT = SCRIPT_DIR
 while TEAM_C_ROOT.name != "team_c" and TEAM_C_ROOT.parent != TEAM_C_ROOT:
     TEAM_C_ROOT = TEAM_C_ROOT.parent
 
-DATA_ROOT = TEAM_C_ROOT / "data-bin" / "dev"
-OUTPUT_ROOT = DATA_ROOT / "output"
+DATA_ROOT = TEAM_C_ROOT / "data-bin"
+ASD_ROOT  = DATA_ROOT / "dev"
+OUTPUT_ROOT = DATA_ROOT / "output_gaze"
 
 
 # --------------------------------------------------------
 # Laden der Geometrie + ASD-Matching
 # --------------------------------------------------------
 
-def _load_seat_geometry(session_out_dir: Path) -> Tuple[List[int], np.ndarray]:
+def _load_seat_geometry(session_out_dir: Path) -> Tuple[List[int], np.ndarray, np.ndarray]:
     """
-    Lädt person_ids + dist_seat aus seat_geometry.npz.
+    Lädt person_ids + dist_seat + theta_deg aus seat_geometry.npz.
 
     Erwartetes Format:
       - person_ids: int[N]
@@ -46,7 +48,15 @@ def _load_seat_geometry(session_out_dir: Path) -> Tuple[List[int], np.ndarray]:
     if dist_seat.shape[0] != len(person_ids) or dist_seat.shape[1] != len(person_ids):
         raise ValueError("dist_seat shape does not match person_ids length")
 
-    return person_ids, dist_seat
+    theta_deg = data.get('theta_deg', None)
+    if theta_deg is None:
+        # Backward compatibility: if theta_deg is missing, approximate with evenly spaced angles
+        n = len(person_ids)
+        theta_deg = np.linspace(0.0, 360.0, num=max(n,1), endpoint=False, dtype=float)
+    else:
+        theta_deg = np.asarray(theta_deg, float)
+
+    return person_ids, dist_seat, theta_deg
 
 
 def _load_asd_matching(session_out_dir: Path) -> Tuple[List[int], List[int], Dict[int, int], np.ndarray, List[int]]:
@@ -308,6 +318,229 @@ def _clusters_dist_k(
 
 
 # --------------------------------------------------------
+# Gaze + speaker distance matrices
+# --------------------------------------------------------
+
+# Speaker distance weights (combined = w_seat*seat + w_gaze*gaze)
+W_SEAT_DEFAULT = 0.6
+W_GAZE_DEFAULT = 0.4
+
+# Interaction model for mutual gaze
+# sigma in degrees: smaller => stricter "looking at"
+GAZE_SIGMA_DEG = 25.0
+
+# Clamp the required head turn (people won't look 170° through their head)
+MAX_TARGET_TURN_DEG = 90.0
+
+def _load_gaze_tracks(session_out_dir: Path) -> Dict[int, dict]:
+    """Load gaze_tracks.json and return a dict {person_id: metrics}."""
+    path = session_out_dir / "gaze_tracks.json"
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        persons = data.get("persons", {}) or {}
+        out: Dict[int, dict] = {}
+        for k, v in persons.items():
+            try:
+                pid = int(k)
+            except Exception:
+                continue
+            out[pid] = v
+        return out
+    except Exception:
+        return {}
+
+def _signed_circ_diff_deg(a: float, b: float) -> float:
+    """Signed smallest difference b-a in degrees in (-180,180]."""
+    d = (b - a + 180.0) % 360.0 - 180.0
+    return float(d)
+
+def _wrap180(x: float) -> float:
+    return float((x + 180.0) % 360.0 - 180.0)
+
+def _mutual_gaze_distance(
+    theta_deg_i: float, yaw_i: float | None,
+    theta_deg_j: float, yaw_j: float | None,
+    yaw_sign_convention: float = 1.0,
+) -> float:
+    """Return a distance in [0,1] where 0 means strong mutual gaze evidence."""
+    if yaw_i is None or yaw_j is None:
+        return 1.0
+
+    # Direction each person would need to turn (approx.) to look at the other.
+    d_ij = _signed_circ_diff_deg(theta_deg_i, theta_deg_j) * float(yaw_sign_convention)
+    d_ji = _signed_circ_diff_deg(theta_deg_j, theta_deg_i) * float(yaw_sign_convention)
+
+    # Clamp unrealistic target turns
+    t_ij = float(np.clip(d_ij, -MAX_TARGET_TURN_DEG, MAX_TARGET_TURN_DEG))
+    t_ji = float(np.clip(d_ji, -MAX_TARGET_TURN_DEG, MAX_TARGET_TURN_DEG))
+
+    e_ij = _wrap180(float(yaw_i) - t_ij)
+    e_ji = _wrap180(float(yaw_j) - t_ji)
+
+    # Gaussian affinity in [0,1]
+    a_ij = math.exp(-(e_ij * e_ij) / (2.0 * GAZE_SIGMA_DEG * GAZE_SIGMA_DEG))
+    a_ji = math.exp(-(e_ji * e_ji) / (2.0 * GAZE_SIGMA_DEG * GAZE_SIGMA_DEG))
+    mutual = float(a_ij * a_ji)
+    return float(np.clip(1.0 - mutual, 0.0, 1.0))
+
+def build_speaker_distance_matrices_for_session(
+    session_out_dir: Path,
+    w_seat: float = W_SEAT_DEFAULT,
+    w_gaze: float = W_GAZE_DEFAULT,
+) -> dict | None:
+    """Compute speaker↔speaker distance matrices (seat/gaze/combined) for one session.
+
+    Strategy:
+    - Speakers are taken ONLY from forced seat↔ASD assignments (extras dropped).
+    - Seat distance is induced from dist_seat via the matched seat indices.
+    - Gaze distance is interaction-based mutual gaze using head-yaw medians.
+    """
+    try:
+        person_ids, dist_seat, theta_deg = _load_seat_geometry(session_out_dir)
+        (person_ids_m, asd_track_ids, person_to_asd, angle_diff_deg) = _load_asd_matching(session_out_dir)
+    except Exception:
+        return None
+
+    # Consistency: ensure geometry person_ids matches matching person_ids
+    # If not, use geometry order and ignore mismatch by best-effort map.
+    pid_to_idx = {int(pid): i for i, pid in enumerate(person_ids)}
+    gaze = _load_gaze_tracks(session_out_dir)
+
+    # Determine speakers from forced matches
+    speaker_items = []
+    for pid, sid in sorted(person_to_asd.items(), key=lambda x: int(x[1])):
+        if int(pid) not in pid_to_idx:
+            continue
+        speaker_items.append((int(pid), int(sid)))
+
+    if len(speaker_items) < 2:
+        return {
+            "speakers": [f"spk_{sid}" for _, sid in speaker_items],
+            "matrices": {"seat": [], "gaze": [], "combined": []},
+            "weights": {"seat": float(w_seat), "gaze": float(w_gaze)},
+            "missing": {"gaze_speakers": [f"spk_{sid}" for _, sid in speaker_items]},
+            "notes": {"reason": "not enough matched speakers"},
+        }
+
+    speakers = [f"spk_{sid}" for _, sid in speaker_items]
+    seat_idx = [pid_to_idx[pid] for pid, _ in speaker_items]
+
+    # Seat-induced speaker distance
+    D_seat = dist_seat[np.ix_(seat_idx, seat_idx)].astype(float)
+
+    # Yaw sign convention stored in gaze_tracks.json if present
+    yaw_sign = 1.0
+    try:
+        gj = json.loads((session_out_dir / "gaze_tracks.json").read_text(encoding="utf-8"))
+        yaw_sign = float(gj.get("yaw_sign_convention", 1.0))
+    except Exception:
+        pass
+
+    # Gaze interaction distance
+    yaws = []
+    missing_gaze = []
+    for (pid, sid) in speaker_items:
+        m = gaze.get(pid, {})
+        yaw = m.get("yaw_deg_median", None) if isinstance(m, dict) else None
+        if yaw is None:
+            yaws.append(None)
+            missing_gaze.append(f"spk_{sid}")
+        else:
+            yaws.append(float(yaw))
+
+    K = len(speakers)
+    D_gaze = np.ones((K, K), float)
+    for i in range(K):
+        D_gaze[i, i] = 0.0
+        for j in range(i + 1, K):
+            th_i = float(theta_deg[seat_idx[i]])
+            th_j = float(theta_deg[seat_idx[j]])
+            d = _mutual_gaze_distance(th_i, yaws[i], th_j, yaws[j], yaw_sign_convention=yaw_sign)
+            D_gaze[i, j] = D_gaze[j, i] = d
+
+    # Combined distance: if gaze missing for a pair, fall back to seat-only weighting.
+    w_seat = float(w_seat); w_gaze = float(w_gaze)
+    D_comb = np.zeros_like(D_seat, float)
+    for i in range(K):
+        for j in range(K):
+            if i == j:
+                D_comb[i, j] = 0.0
+                continue
+            if yaws[i] is None or yaws[j] is None:
+                # ignore gaze weight if not available
+                D_comb[i, j] = D_seat[i, j]
+            else:
+                D_comb[i, j] = w_seat * D_seat[i, j] + w_gaze * D_gaze[i, j]
+
+    return {
+        "speakers": speakers,
+        "matrices": {
+            "seat": D_seat.tolist(),
+            "gaze": D_gaze.tolist(),
+            "combined": D_comb.tolist(),
+        },
+        "weights": {"seat": w_seat, "gaze": w_gaze},
+        "missing": {"gaze_speakers": missing_gaze},
+        "notes": {
+            "speaker_source": "forced seat↔ASD assignments (extras dropped)",
+            "gaze_interaction": "mutual gaze affinity from head-yaw medians (approx.)",
+        },
+    }
+
+def _score_clustering(D: np.ndarray, labels: np.ndarray) -> float:
+    # Higher is better: (between - within)
+    n = D.shape[0]
+    within = []
+    between = []
+    for i in range(n):
+        for j in range(i+1, n):
+            if labels[i] == labels[j]:
+                within.append(D[i, j])
+            else:
+                between.append(D[i, j])
+    if not within or not between:
+        return -1e9
+    return float(np.mean(between) - np.mean(within))
+
+def choose_k_from_distance(D: np.ndarray, k_min: int = 2, k_max: int = 4) -> int:
+    n = D.shape[0]
+    if n < 2:
+        return 1
+    k_max = min(int(k_max), n)
+    k_min = min(int(k_min), k_max)
+    if k_min < 2:
+        k_min = 2
+    if k_max < 2:
+        return 1
+
+    condensed = squareform(D, checks=False)
+    Z = linkage(condensed, method="average")
+    best_k = k_min
+    best_score = -1e18
+    for k in range(k_min, k_max + 1):
+        labels = fcluster(Z, t=k, criterion="maxclust")
+        score = _score_clustering(D, labels)
+        if score > best_score:
+            best_score = score
+            best_k = k
+    return int(best_k)
+
+def agglomerative_labels_from_distance(D: np.ndarray, k: int) -> np.ndarray:
+    if D.shape[0] == 0:
+        return np.array([], int)
+    if D.shape[0] == 1:
+        return np.array([0], int)
+    condensed = squareform(D, checks=False)
+    Z = linkage(condensed, method="average")
+    labels = fcluster(Z, t=int(k), criterion="maxclust")
+    # Normalize to 0..K-1
+    uniq = {lab: i for i, lab in enumerate(sorted(set(labels.tolist())))}
+    return np.array([uniq[x] for x in labels], int)
+
+
+# --------------------------------------------------------
 # Mapping: Personen-Cluster -> Speaker-Cluster
 # --------------------------------------------------------
 
@@ -423,7 +656,7 @@ def build_seating_speaker_clusters_for_session(
         raise FileNotFoundError(f"Session output dir not found: {session_out_dir}")
 
     # 1) Geometrie + Distanzmatrix (Seats)
-    person_ids_geom, dist_seat = _load_seat_geometry(session_out_dir)
+    person_ids_geom, dist_seat, theta_deg = _load_seat_geometry(session_out_dir)
 
     # 2) ASD-Matching
     (
@@ -493,7 +726,42 @@ def build_seating_speaker_clusters_for_session(
         pc = _clusters_dist_k(person_ids, dist_seat, k=2)
         run_variant("dist_k2", pc)
 
+    # ----------------------------------------------------
+    # 4) Agglomerative clustering on speaker distance matrices
+    # ----------------------------------------------------
+    try:
+        mats = build_speaker_distance_matrices_for_session(session_out_dir)
+    except Exception:
+        mats = None
+
+    if mats is not None:
+        # also store per-session matrices for debugging / reuse
+        (session_out_dir / "speaker_distance_matrices.json").write_text(
+            json.dumps(mats, indent=2), encoding="utf-8"
+        )
+
+        speakers = mats.get("speakers", [])
+        matrices = mats.get("matrices", {}) or {}
+
+        def write_agglom(tag: str, D_list):
+            if not speakers or not D_list:
+                return
+            D = np.asarray(D_list, float)
+            if D.shape[0] < 2:
+                return
+            k = choose_k_from_distance(D, k_min=2, k_max=4)
+            labels = agglomerative_labels_from_distance(D, k=k)
+            spk_clusters = {spk: int(labels[i]) for i, spk in enumerate(speakers)}
+            out_path = session_out_dir / f"speaker_to_cluster_agglom_{tag}.json"
+            out_path.write_text(json.dumps(spk_clusters, indent=2), encoding="utf-8")
+            results[f"agglom_{tag}"] = spk_clusters
+
+        write_agglom("seat", matrices.get("seat", []))
+        write_agglom("gaze", matrices.get("gaze", []))
+        write_agglom("combined", matrices.get("combined", []))
+
     return results
+
 
 
 # --------------------------------------------------------
@@ -516,6 +784,38 @@ def main_all_sessions():
             print(f"  -> variants: {variants}")
         except Exception as e:
             print(f"  ERROR in {session_name}: {e}")
+
+    try:
+        p = write_global_speaker_distance_matrices_json()
+        print(f"[seating_speaker_baselines] wrote global distance JSON: {p}")
+    except Exception as e:
+        print(f"[seating_speaker_baselines] ERROR writing global distance JSON: {e}")
+
+
+def write_global_speaker_distance_matrices_json(out_path: Path | None = None) -> Path:
+    """Build a single JSON containing all per-session speaker distance matrices."""
+    if out_path is None:
+        out_path = OUTPUT_ROOT / "speaker_distance_matrices.json"
+
+    agg = {"version": 1, "sessions": {}}
+    for sdir in sorted(OUTPUT_ROOT.glob("session_*")):
+        if not sdir.is_dir():
+            continue
+        session_name = sdir.name
+        per = None
+        per_path = sdir / "speaker_distance_matrices.json"
+        if per_path.exists():
+            try:
+                per = json.loads(per_path.read_text(encoding="utf-8"))
+            except Exception:
+                per = None
+        if per is None:
+            per = build_speaker_distance_matrices_for_session(sdir)
+        if per is not None:
+            agg["sessions"][session_name] = per
+
+    out_path.write_text(json.dumps(agg, indent=2), encoding="utf-8")
+    return out_path
 
 
 if __name__ == "__main__":

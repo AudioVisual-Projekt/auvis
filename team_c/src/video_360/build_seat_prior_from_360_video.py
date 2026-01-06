@@ -50,6 +50,8 @@ Dependencies:
 """
 
 from __future__ import annotations
+import math
+
 
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # reduce TF/TFLite verbosity early
@@ -119,16 +121,16 @@ if VIDEOS_ROOT is None:
     VIDEOS_ROOT = DATA_ROOT / "dev_central_videos"
 
 # Output + ASD + Labels hängen am DATA_ROOT
-OUTPUT_ROOT = DATA_ROOT / "output"
-ASD_ROOT    = DATA_ROOT          # session_*/speakers/...
-LABELS_ROOT = DATA_ROOT          # session_*/labels/...
+OUTPUT_ROOT = DATA_ROOT / "output_gaze"
+ASD_ROOT    = DATA_ROOT / "dev"      # dev/session_*/speakers/...
+LABELS_ROOT = DATA_ROOT / "dev"      # dev/session_*/labels/...
 
 # Standard: Geometrie immer frisch berechnen (kannst du bei Bedarf auf False setzen)
 RECOMPUTE_GEOMETRY = True
 
 
 # Sampling
-SAMPLE_FPS = 2.0
+SAMPLE_FPS = 4.0
 WIN_STARTS = (0.0, 5.0, 15.0, 30.0)
 WIN_MIN = 20.0
 WIN_MAX = 45.0
@@ -155,6 +157,10 @@ LAMBDA_DEFAULT = 0.25
 # ASD matching thresholds
 ASSIGN_MAX_DEG = 35.0        # for per-frame box↔seat assignment (not used now)
 ASD_MATCH_MAX_DEG = 45.0     # max allowed angle diff (deg) for Seat↔Speaker match
+
+PAD_SCALE = 2.2          # brutal locker (1.8–2.5 sinnvoll)
+MIN_FACE_SIDE = 160      # hoch für 360° Videos
+
 
 
 # ----------------------------
@@ -191,6 +197,164 @@ def detect_faces_mediapipe(fd, frame_bgr):
             if x2 > x1 and y2 > y1:
                 bboxes.append([x1, y1, x2, y2])
     return bboxes
+
+# ----------------------------
+# Gaze / Head-Yaw estimation (optional)
+# ----------------------------
+# We estimate head yaw per tracked person. This is used downstream for
+# interaction-based speaker distances ("mutual gaze" -> closer).
+#
+# Dependency note: This implementation prefers MediaPipe FaceMesh + solvePnP.
+# If mediapipe is not installed or FaceMesh fails, we fall back to "no gaze"
+# (n_samples=0) without failing the pipeline.
+#
+# Sign convention:
+#   yaw_deg > 0  => looking towards increasing seat theta (counter-clockwise)
+# This is an approximation because yaw is measured in camera/image coordinates.
+# If you find the sign is flipped in your data, set YAW_SIGN_CONVENTION = -1.0.
+YAW_SIGN_CONVENTION = 1.0
+
+# How often to run yaw estimation for a track when it is updated (every sampled frame by default).
+GAZE_EVERY_N_UPDATES = 1
+
+# FaceMesh parameters (kept lightweight)
+FACEMESH_STATIC_IMAGE_MODE = False
+FACEMESH_MAX_NUM_FACES = 1
+FACEMESH_REFINE_LANDMARKS = False
+FACEMESH_MIN_DET_CONF = 0.2
+FACEMESH_MIN_TRACK_CONF = 0.2
+
+# Landmark indices (MediaPipe FaceMesh)
+# Commonly used points for head pose (approximate):
+#  - Nose tip: 1
+#  - Chin: 152
+#  - Left eye outer corner: 33
+#  - Right eye outer corner: 263
+#  - Left mouth corner: 61
+#  - Right mouth corner: 291
+POSE_LANDMARKS = {
+    "nose": 1,
+    "chin": 152,
+    "left_eye": 33,
+    "right_eye": 263,
+    "left_mouth": 61,
+    "right_mouth": 291,
+}
+
+_POSE_LM = POSE_LANDMARKS
+
+
+def init_mp_facemesh():
+    if not _MP_OK:
+        return None
+    try:
+        return mp.solutions.face_mesh.FaceMesh(
+            static_image_mode=FACEMESH_STATIC_IMAGE_MODE,
+            max_num_faces=FACEMESH_MAX_NUM_FACES,
+            refine_landmarks=FACEMESH_REFINE_LANDMARKS,
+            min_detection_confidence=FACEMESH_MIN_DET_CONF,
+            min_tracking_confidence=FACEMESH_MIN_TRACK_CONF,
+        )
+    except Exception:
+        return None
+
+def _extract_pose_points(face_landmarks, w: int, h: int):
+    # returns 2D image points for PnP, in pixel coords
+    pts = []
+    for k in ("nose","chin","left_eye","right_eye","left_mouth","right_mouth"):
+        idx = POSE_LANDMARKS[k]
+        lm = face_landmarks.landmark[idx]
+        pts.append([lm.x * w, lm.y * h])
+    return np.asarray(pts, dtype=np.float64)
+
+def _get_3d_model_points():
+    # Generic 3D model points in arbitrary units.
+    # These approximate the relative layout of the facial features.
+    return np.array([
+        [0.0, 0.0, 0.0],        # nose tip
+        [0.0, -63.6, -12.5],    # chin
+        [-43.3, 32.7, -26.0],   # left eye corner
+        [43.3, 32.7, -26.0],    # right eye corner
+        [-28.9, -28.9, -24.1],  # left mouth corner
+        [28.9, -28.9, -24.1],   # right mouth corner
+    ], dtype=np.float64)
+
+_MODEL_POINTS_3D = _get_3d_model_points()
+
+def estimate_head_yaw_deg_from_crop(face_bgr: np.ndarray, fm) -> float | None:
+    """
+    Estimate head yaw (degrees) from a face crop (BGR). Returns None on failure.
+
+    IMPORTANT: In 360° equirectangular central videos, a full 3D head-pose solvePnP often
+    fails (distortion + tiny faces). Therefore we:
+      1) try FaceMesh + solvePnP (if it works)
+      2) otherwise fall back to a robust 2D landmark yaw proxy:
+         yaw_proxy ~ (nose_x - mid_eye_x) / eye_distance  -> degrees
+    This proxy is sufficient for the downstream "mutual gaze" interaction signal.
+    """
+    if fm is None or face_bgr is None or face_bgr.size == 0:
+        return None
+    try:
+        img_rgb = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2RGB)
+        res = fm.process(img_rgb)
+        if not res or not res.multi_face_landmarks:
+            return None
+
+        h, w = face_bgr.shape[:2]
+        lm = res.multi_face_landmarks[0]
+
+        # --- robust 2D yaw proxy (works even when solvePnP fails) ---
+        try:
+            # Use FaceMesh landmarks: nose tip (1), left eye outer (33), right eye outer (263)
+            nose = lm.landmark[_POSE_LM["nose"]]
+            le   = lm.landmark[_POSE_LM["left_eye"]]
+            re_  = lm.landmark[_POSE_LM["right_eye"]]
+            nose_x = nose.x * w
+            le_x   = le.x * w
+            re_x   = re_.x * w
+            mid_eye_x = 0.5 * (le_x + re_x)
+            eye_dist = max(1.0, abs(re_x - le_x))
+
+            # Normalize nose offset by eye distance.
+            rel = (nose_x - mid_eye_x) / eye_dist  # roughly in [-0.6, 0.6] for typical yaws
+
+            # Map to degrees. Empirically, rel≈0.35 corresponds to ~30-40° yaw on many crops.
+            yaw_proxy_deg = float(np.clip(rel * 90.0, -90.0, 90.0))  # conservative
+        except Exception:
+            yaw_proxy_deg = None
+
+        # --- attempt solvePnP pose yaw (optional) ---
+        try:
+            image_points = _extract_pose_points(lm, w, h)
+
+            focal = float(w)
+            cam = np.array([[focal, 0, w/2.0],
+                            [0, focal, h/2.0],
+                            [0, 0, 1]], dtype=np.float64)
+            dist = np.zeros((4, 1), dtype=np.float64)
+
+            ok, rvec, tvec = cv2.solvePnP(
+                _MODEL_POINTS_3D, image_points, cam, dist, flags=cv2.SOLVEPNP_ITERATIVE
+            )
+            if ok:
+                rmat, _ = cv2.Rodrigues(rvec)
+                sy = math.sqrt(rmat[0, 0]*rmat[0, 0] + rmat[1, 0]*rmat[1, 0])
+                singular = sy < 1e-6
+                if not singular:
+                    yaw = math.atan2(rmat[2, 0], sy)
+                else:
+                    yaw = math.atan2(-rmat[1, 2], rmat[1, 1])
+
+                yaw_deg = float(np.degrees(yaw))
+                # If yaw is crazy due to failed pose, ignore and use proxy
+                if -120.0 <= yaw_deg <= 120.0:
+                    return yaw_deg
+        except Exception:
+            pass
+
+        return yaw_proxy_deg
+    except Exception:
+        return None
 
 # Fallback: Haar
 _HAAR = None
@@ -545,9 +709,25 @@ def match_asd_tracks_and_plot(geom: dict,
     if not asd_session_dir.exists():
         return {"N_asd_tracks": 0, "N_asd_used": 0, "N_pairs": 0,
                 "assignments": [], "asd_track_ids": [], "unassigned_asd_track_ids": []}
+    print(f"[asd-debug] asd_session_dir={asd_session_dir} exists={asd_session_dir.exists()}")
+    speakers_root = asd_session_dir / "speakers"
+    print(f"[asd-debug] speakers_root={speakers_root} exists={speakers_root.exists()}")
+
 
     asd_angles = load_asd_track_angles(asd_session_dir, frame_width, geom["seam_deg"])
+    print(f"[asd-debug] loaded_asd_angles={len(asd_angles)}")
     if not asd_angles:
+        out_json = {
+            "person_ids": list(map(int, geom.get("person_ids", []))),
+            "asd_track_ids": [],
+            "angle_diff_deg_matrix": [],
+            "assignments": [],
+            "assignments_all": [],
+            "angle_diff_max_deg_for_match": float(ASD_MATCH_MAX_DEG),
+            "unassigned_asd_track_ids": [],
+            "note": "No ASD tracks found/loaded for this session.",
+        }
+        (out_dir / "asd_seat_matching.json").write_text(json.dumps(out_json, indent=2), encoding="utf-8")
         return {"N_asd_tracks": 0, "N_asd_used": 0, "N_pairs": 0,
                 "assignments": [], "asd_track_ids": [], "unassigned_asd_track_ids": []}
 
@@ -583,8 +763,23 @@ def match_asd_tracks_and_plot(geom: dict,
             "person_id": pid,
             "asd_track_id": sid,
             "angle_diff_deg": d,          # für Task 5 gut sichtbar lassen
+            "is_confident": bool(d <= ASD_MATCH_MAX_DEG),
+            "method": "hungarian_1to1",
         })
         assigned_asd_ids.add(sid)
+
+    # per-speaker argmin (many-to-one allowed): ensures every ASD speaker can be mapped to a seat
+    assignments_all = []
+    for j in range(M):
+        i_best = int(np.argmin(C[:, j]))
+        d_best = float(C[i_best, j])
+        assignments_all.append({
+            "person_id": int(person_ids[i_best]),
+            "asd_track_id": int(asd_track_ids[j]),
+            "angle_diff_deg": d_best,
+            "is_confident": bool(d_best <= ASD_MATCH_MAX_DEG),
+            "method": "per_speaker_argmin",
+        })
 
     unassigned_asd = sorted([int(tid) for tid in asd_track_ids if int(tid) not in assigned_asd_ids])
 
@@ -593,6 +788,7 @@ def match_asd_tracks_and_plot(geom: dict,
         "asd_track_ids": asd_track_ids.tolist(),
         "angle_diff_deg_matrix": C.tolist(),
         "assignments": assignments,
+        "assignments_all": assignments_all,
         # Schwelle nur noch als Info, wird nicht mehr zum Filtern verwendet:
         "angle_diff_max_deg_for_match": float(ASD_MATCH_MAX_DEG),
         "unassigned_asd_track_ids": unassigned_asd,
@@ -627,6 +823,7 @@ def match_asd_tracks_and_plot(geom: dict,
         "N_asd_used": int(len(assigned_asd_ids)),
         "N_pairs": int(len(assignments)),
         "assignments": assignments,
+        "assignments_all": assignments_all,
         "asd_track_ids": asd_track_ids.tolist(),
         "unassigned_asd_track_ids": unassigned_asd,
     }
@@ -749,6 +946,9 @@ def _plot_groundtruth_clusters(path: Path,
 # Main per-session processing
 # ----------------------------
 def process_video(session_dir: Path):
+    gaze_calls = 0
+    gaze_hits = 0
+
     video = session_dir / VIDEO_NAME
     if not video.exists():
         return False, {"session": session_dir.name, "error": "missing video"}
@@ -778,7 +978,11 @@ def process_video(session_dir: Path):
     track_x: Dict[int, List[float]] = {}
     track_h: Dict[int, List[float]] = {}
     track_y: Dict[int, List[float]] = {}
+    track_yaw: Dict[int, List[float]] = {}   # head yaw estimates per track_id
+    track_updates: Dict[int, int] = {}       # how many times a track was updated (for subsampling yaw estimation)
     frames_with_dets = 0
+
+    fm = init_mp_facemesh()
 
     for win_start in win_starts:
         start = min(win_start, max(0.0, duration - 1.0))
@@ -822,6 +1026,46 @@ def process_video(session_dir: Path):
                     track_x.setdefault(tid, []).append(tr.x_centers[-1])
                     track_y.setdefault(tid, []).append(tr.y_centers[-1])
                     track_h.setdefault(tid, []).append(tr.heights[-1])
+
+                    # Optional head-yaw estimation for gaze interactions
+                    track_updates[tid] = track_updates.get(tid, 0) + 1
+                    if (track_updates[tid] % GAZE_EVERY_N_UPDATES) == 0:
+                        try:
+                            x1, y1, x2, y2 = map(int, tr.bbox)
+
+                            # bbox center + scaled padding
+                            cx = 0.5 * (x1 + x2)
+                            cy = 0.5 * (y1 + y2)
+                            bw = max(1, x2 - x1)
+                            bh = max(1, y2 - y1)
+
+                            half_w = 0.5 * bw * PAD_SCALE
+                            half_h = 0.5 * bh * PAD_SCALE
+
+                            x1p = int(max(0, cx - half_w))
+                            x2p = int(min(content.shape[1] - 1, cx + half_w))
+                            y1p = int(max(0, cy - half_h))
+                            y2p = int(min(content.shape[0] - 1, cy + half_h))
+
+                            crop = content[y1p:y2p, x1p:x2p]
+
+                            # If crop is tiny, upscale for FaceMesh stability.
+                            if crop is not None and crop.size > 0:
+                                ch, cw = crop.shape[:2]
+                                min_side = min(ch, cw)
+                                if min_side < MIN_FACE_SIDE:
+                                    scale = MIN_FACE_SIDE / float(min_side)
+                                    crop = cv2.resize(
+                                        crop,
+                                        (int(cw * scale), int(ch * scale)),
+                                        interpolation=cv2.INTER_CUBIC
+                                    )
+
+                            yaw = estimate_head_yaw_deg_from_crop(crop, fm)
+                            if yaw is not None:
+                                track_yaw.setdefault(tid, []).append(float(yaw))
+                        except Exception:
+                            pass
 
             f += step
             pbar.update(step)
@@ -907,6 +1151,64 @@ def process_video(session_dir: Path):
     )
 
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    # ------------------------------------------------------------
+    # Gaze summary per seat-person (optional)
+    # ------------------------------------------------------------
+    persons = {}
+
+    # Optional: reduziere Größe der JSON (sonst evtl. sehr groß)
+    GAZE_EXPORT_STRIDE = 1  # 1 = alles exportieren, 2 = jedes 2. Sample, 5 = jedes 5. Sample
+    GAZE_EXPORT_ROUND = 3  # Dezimalstellen (0 = int)
+
+    for s in seat_order:
+        yaws = track_yaw.get(s.track_id, [])
+
+        # Downsample + runden (damit JSON klein bleibt)
+        if yaws:
+            yaws_ds = yaws[::GAZE_EXPORT_STRIDE]
+            if GAZE_EXPORT_ROUND is not None and GAZE_EXPORT_ROUND >= 0:
+                yaws_ds = [round(float(v), int(GAZE_EXPORT_ROUND)) for v in yaws_ds]
+            else:
+                yaws_ds = [float(v) for v in yaws_ds]
+        else:
+            yaws_ds = []
+
+        if yaws_ds:
+            y = np.asarray(yaws_ds, float)
+            med = float(np.median(y))
+            q1 = float(np.percentile(y, 25))
+            q3 = float(np.percentile(y, 75))
+            persons[str(int(s.person_id))] = {
+                # Full time series (this is what you want)
+                "yaw_deg_samples": yaws_ds,
+
+                # Keep summary stats too (useful for debugging / fallback)
+                "yaw_deg_median": med,
+                "yaw_deg_iqr": float(q3 - q1),
+                "n_samples": int(len(yaws_ds)),
+            }
+        else:
+            persons[str(int(s.person_id))] = {
+                "yaw_deg_samples": [],
+                "yaw_deg_median": None,
+                "yaw_deg_iqr": None,
+                "n_samples": 0,
+            }
+
+    gazeout_json = {
+        "session": session_dir.name,
+        "method": "mediapipe_face_mesh_pnp" if (_MP_OK and fm is not None) else "none",
+        "yaw_sign_convention": float(YAW_SIGN_CONVENTION),
+        "export": {
+            "stride": int(GAZE_EXPORT_STRIDE),
+            "round_decimals": int(GAZE_EXPORT_ROUND),
+        },
+        "persons": persons,
+    }
+
+    (out_dir / "gaze_tracks.json").write_text(json.dumps(gazeout_json, indent=2), encoding="utf-8")
+
 
     seat_json = [{
         "person_id": s.person_id,
