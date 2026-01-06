@@ -8,6 +8,8 @@ It currently handles the batch processing of interaction matrices calculation.
 
 Functions:
     - run_matrix_pipeline: Iterates over experiments and triggers matrix calculation.
+    - discover_clustering_experiments: Finds existing clustering runs.
+    - run_clustering_pipeline: Runs the actual clustering (with history and max_dist).
 """
 
 import os
@@ -29,23 +31,6 @@ from ..services.clustering_engine import ClusteringEngine
 def run_matrix_pipeline(experiments: List[SegmentationExperimentModel], global_logger: logging.Logger) -> None:
     """
     Step 2 of the Pipeline: Calculates distance matrices for existing segmentation results.
-
-    This function iterates through all provided experiment models, locates their
-    corresponding segmentation output files ('*_segments.json') within the 'segments'
-    subdirectory, and uses the MatrixCalculator to derive speaker interaction matrices.
-
-    The results are saved as '*_matrix.json' in the 'matrices' subdirectory.
-    The process uses the experiment-specific logger to document progress within
-    the hash-specific folders.
-
-    Args:
-        experiments (List[SegmentationExperimentModel]): A list of experiment models
-            containing configuration (hash) and path information.
-        global_logger (logging.Logger): The main logger instance for high-level
-            application flow logging.
-
-    Returns:
-        None: Results are written directly to the filesystem.
     """
     global_logger.info("--- Service: Running Matrix Calculation Pipeline ---")
 
@@ -79,9 +64,6 @@ def run_matrix_pipeline(experiments: List[SegmentationExperimentModel], global_l
 
             count_new = 0
 
-            # Note: We removed the skip-logic to ensure "Always Fresh" calculations
-            # as discussed, ensuring matrices always match the latest code/params.
-
             for seg_file in segment_files:
                 # Extract clean session ID to build the new path
                 session_filename = os.path.basename(seg_file)
@@ -97,9 +79,7 @@ def run_matrix_pipeline(experiments: List[SegmentationExperimentModel], global_l
                     with open(seg_file, 'r') as f:
                         data = json.load(f)
 
-                    # Verify session ID matches or fallback
                     loaded_session_id = data.get("session_id", session_id)
-                    # Type hint: expected dict structure from segmentation step
                     speakers_data = data.get("speakers", {})
 
                     # 2. Run Calculation Logic
@@ -119,7 +99,6 @@ def run_matrix_pipeline(experiments: List[SegmentationExperimentModel], global_l
 
                 except Exception as e:
                     error_msg = f"Error calculating matrix for {session_filename}: {e}"
-                    # Log to both global (for overview) and local (for detail) logs
                     global_logger.error(f"[Exp {exp_id}] {error_msg}")
                     exp_logger.error(error_msg)
 
@@ -130,24 +109,21 @@ def run_matrix_pipeline(experiments: List[SegmentationExperimentModel], global_l
 
     global_logger.info("--> Matrix Pipeline execution finished.")
 
+
 def discover_clustering_experiments(parents: List[SegmentationExperimentModel],
                                     global_logger) -> List[ClusteringExperimentModel]:
     """
     Scans the output directories of the parent segmentation experiments to find
     existing clustering results on disk.
-
-    This ensures decoupling: We can run evaluation without re-running clustering.
     """
     discovered_experiments = []
 
-    # Dynamically retrieve allowed fields from the Config class to prevent TypeError
-    # on extra keys (like 'parent_seg_hash') during unpacking.
+    # Dynamically retrieve allowed fields from the Config class
     allowed_fields = {f.name for f in fields(ClusteringConfig)}
 
     for parent in parents:
         parent_dir = parent.output_dir
 
-        # Find subdirectories in the parent folder
         try:
             if not os.path.exists(parent_dir):
                 continue
@@ -162,23 +138,16 @@ def discover_clustering_experiments(parents: List[SegmentationExperimentModel],
 
             if os.path.exists(config_path):
                 try:
-                    # 1. Load JSON (might contain legacy metadata like 'parent_seg_hash')
                     with open(config_path, 'r') as f:
                         raw_data = json.load(f)
 
-                    # 2. Filter keys: Only pass arguments that ClusteringConfig actually expects
                     clean_config_data = {
                         k: v for k, v in raw_data.items()
                         if k in allowed_fields
                     }
 
-                    # 3. Reconstruct Config object
                     config = ClusteringConfig(**clean_config_data)
-
-                    # 4. Reconstruct Experiment Model
-                    # The parent object (from the outer loop) provides the context (segmentation hash)
                     model = ClusteringExperimentModel(config, parent)
-
                     discovered_experiments.append(model)
 
                 except Exception as e:
@@ -187,21 +156,17 @@ def discover_clustering_experiments(parents: List[SegmentationExperimentModel],
     global_logger.info(f"Discovered {len(discovered_experiments)} existing clustering experiments on disk.")
     return discovered_experiments
 
+
 def run_clustering_pipeline(experiments, param_grid_clustering, global_logger):
     """
     Step 3: Runs Clustering on the calculated matrices.
     Creates sub-folders for each clustering configuration.
 
-    Args:
-        experiments (list): List of SegmentationExperimentModel instances (Parents).
-        param_grid_clustering (dict): Dictionary containing lists of parameters
-                                      (threshold, linkage) to iterate over.
-        global_logger (logging.Logger): Main logger for high-level flow.
+    UPDATED: Now handles (labels, max_dist, history) from engine.
     """
     global_logger.info("--- Service: Running Clustering Pipeline ---")
 
     # 1. Generate Clustering Configs from Grid
-    # (Simplified for now: Just flat list of configs)
     cluster_configs = []
     for th in param_grid_clustering['threshold']:
         for li in param_grid_clustering['linkage']:
@@ -212,7 +177,6 @@ def run_clustering_pipeline(experiments, param_grid_clustering, global_logger):
         seg_id = seg_exp.seg_exp_id
 
         # Use the property 'matrices_dir' to locate the correct source folder
-        # Structure: .../<SEG_HASH>/matrices/*_matrix.json
         matrix_source_dir = seg_exp.matrices_dir
 
         search_pattern = os.path.join(matrix_source_dir, "*_matrix.json")
@@ -225,7 +189,6 @@ def run_clustering_pipeline(experiments, param_grid_clustering, global_logger):
         # 3. Iterate over CHILD experiments (Clustering variations)
         for clust_conf in cluster_configs:
             # Init Child Model
-            # This creates a folder: .../data-bin/_output/.../<SEG_HASH>/<CLUST_HASH>/
             clust_exp = ClusteringExperimentModel(clust_conf, seg_exp)
             clust_exp.create_structure()
 
@@ -238,35 +201,46 @@ def run_clustering_pipeline(experiments, param_grid_clustering, global_logger):
             with clust_exp.experiment_logger() as logger:
                 logger.info(f"--- Clustering: Th={clust_conf.threshold}, Link={clust_conf.linkage} ---")
 
+                # Container for history logs for this experiment
+                all_histories = {}
                 count = 0
+
                 for mat_file in matrix_files:
                     try:
                         # Load Matrix
                         with open(mat_file, 'r') as f:
                             data = json.load(f)
 
-                        # Extract data assuming standard structure from MatrixCalculator
                         session_id = data.get('session_id')
+                        # Note: Check if your matrix calculator saves it as 'distance_matrix' or just 'matrix'
+                        # Based on previous code, it seems to be 'distance_matrix' or 'matrix'
+                        # We try 'distance_matrix' first (as per your snippet), then fallback if needed
                         matrix = data.get('distance_matrix')
+                        if matrix is None:
+                             matrix = data.get('matrix')
+
                         spk_ids = data.get('speaker_ids')
 
                         if session_id is None or matrix is None or spk_ids is None:
                             logger.error(f"Invalid data structure in {os.path.basename(mat_file)}")
                             continue
 
-                        # Run Clustering Logic
-                        labels = engine.run_clustering(matrix, spk_ids)
+                        # --- NEW: Catch all 3 return values ---
+                        clustering_map, max_dist, history = engine.run_clustering(matrix, spk_ids)
 
-                        # Prepare Result Payload
+                        # Store history
+                        all_histories[session_id] = history
+
+                        # Prepare Result Payload (Including max_merge_distance)
                         output_payload = {
                             "session_id": session_id,
                             "parent_hash": seg_id,
                             "cluster_hash": clust_exp.clust_exp_id,
-                            "clustering": labels  # Example: {"spk_0": 0, "spk_1": 1...}
+                            "max_merge_distance": max_dist,  # <--- NEW
+                            "clustering": clustering_map
                         }
 
                         # Define output path
-                        # Output goes into the specific Clustering-Hash folder
                         out_name = f"{session_id}_clustering.json"
                         out_path = os.path.join(clust_exp.output_dir, out_name)
 
@@ -274,16 +248,18 @@ def run_clustering_pipeline(experiments, param_grid_clustering, global_logger):
                         with open(out_path, 'w') as f_out:
                             json.dump(output_payload, f_out, indent=4)
 
-                        # LOGGING: Success message for this session
                         logger.info(f"Clustered session: {session_id}")
-
                         count += 1
 
                     except Exception as e:
-                        # Log error specifically for this file but continue processing others
                         fname = os.path.basename(mat_file)
                         logger.error(f"Failed session {fname}: {e}")
 
-                logger.info(f"Clustered {count} sessions.")
+                # --- NEW: Save Global History Log ---
+                hist_path = os.path.join(clust_exp.output_dir, "clustering_history.json")
+                with open(hist_path, 'w') as f:
+                    json.dump(all_histories, f, indent=4)
+
+                logger.info(f"Clustered {count} sessions. History saved.")
 
     global_logger.info("--> Clustering Pipeline finished.")

@@ -14,6 +14,7 @@ Usage:
     Run this script directly to execute the pipeline.
 """
 
+import os
 from team_c.src.utils.logging_utils import setup_logger_context
 from team_c.src.services.asd_scores_preprocess_service import load_sessions
 from team_c.src.services.segmentation_workflow_service import (
@@ -25,8 +26,12 @@ from team_c.src.services.segmentation_workflow_service import (
 from team_c.src.services.clustering_workflow_service import (
     run_matrix_pipeline,
     run_clustering_pipeline,
-    discover_clustering_experiments)
-from team_c.src.services.evaluation_workflow_service import run_evaluation_pipeline
+    discover_clustering_experiments
+)
+from team_c.src.services.evaluation_workflow_service import (
+    run_evaluation_pipeline,
+    generate_global_overview_csv  # <--- NEW IMPORT
+)
 
 
 # --- MAIN ---
@@ -92,10 +97,22 @@ def main():
         run_clustering_pipeline(experiments, clust_param_grid, main_logger)
 
         # evaluation
-        # target_dataset ist z.B. "dev" (wo die Labels liegen)
+        # target_dataset is e.g. "dev" (where the labels are located)
         clustering_experiments = discover_clustering_experiments(experiments, main_logger)
+
         if clustering_experiments:
+            # 1. Run Evaluation
             run_evaluation_pipeline(clustering_experiments, target_dataset, main_logger)
+
+            # 2. Generate Global Overview CSV
+            # Determine root output directory (e.g., .../data-bin/_output/av_asd)
+            # We use the first experiment as an anchor and navigate up two levels
+            # (from .../<seg_hash>/<clust_hash> up to .../av_asd)
+            first_exp = clustering_experiments[0]
+            root_output_dir = os.path.dirname(os.path.dirname(first_exp.output_dir))
+
+            generate_global_overview_csv(root_output_dir, main_logger)
+
         else:
             main_logger.warning("Skipping Evaluation: No clustering experiments found on disk.")
 

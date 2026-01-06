@@ -9,7 +9,7 @@ This service:
 3. Aggregates results (F1, Precision, Recall, ARI).
 4. Saves detailed CSV reports for each experiment.
 5. Saves a comprehensive JSON summary for each experiment (Experiment Level).
-6. Generates a Global Overview CSV comparing all experiments (Competition View).
+6. Generates Global Overview CSVs (one per dataset) comparing all experiments.
 """
 
 import os
@@ -17,6 +17,7 @@ import csv
 import json
 import glob
 import logging
+from collections import defaultdict
 from datetime import datetime
 from typing import List, Dict, Any
 
@@ -122,16 +123,16 @@ def run_evaluation_pipeline(experiments: List[ClusteringExperimentModel],
 def generate_global_overview_csv(experiments_root: str, global_logger: logging.Logger) -> None:
     """
     Scans the entire output directory for 'experiment_result.json' files
-    and compiles them into a single 'experiments_overview.csv'.
+    and compiles them into overview CSVs.
 
-    This CSV allows sorting by 'AVG_SPEAKER_F1' to find the competition winner.
+    Creates ONE CSV per dataset found (e.g. 'overview_dev.csv', 'overview_train.csv')
+    to handle different session counts dynamically.
 
     Args:
-        experiments_root: The root directory containing all experiment hash folders
-                          (e.g., .../data-bin/_output/av_asd).
+        experiments_root: The root directory containing all experiment hash folders.
         global_logger: Logger for output.
     """
-    global_logger.info("--- Aggregating Experiment Results into Overview CSV ---")
+    global_logger.info("--- Aggregating Experiment Results into Overview CSVs ---")
 
     # 1. Search recursively for all JSON results
     # Pattern: experiments_root/**/experiment_result.json
@@ -142,9 +143,12 @@ def generate_global_overview_csv(experiments_root: str, global_logger: logging.L
         global_logger.warning("No experiment_result.json files found. Nothing to aggregate.")
         return
 
-    aggregated_data = []
-    all_session_keys = set()
-    all_param_keys = set()
+    # Data Container: { "dev": [row1, row2], "train": [row3] }
+    data_by_dataset = defaultdict(list)
+
+    # Header tracking per dataset
+    sessions_by_dataset = defaultdict(set)
+    params_by_dataset = defaultdict(set)
 
     # 2. Load data and flatten
     for jf in json_files:
@@ -152,15 +156,16 @@ def generate_global_overview_csv(experiments_root: str, global_logger: logging.L
             with open(jf, 'r') as f:
                 data = json.load(f)
 
+            # Identify the dataset for grouping
+            dataset_name = data["meta"].get("dataset", "unknown")
+
             # Basic Info & Metrics
             row = {
-                "dataset": data["meta"]["dataset"],
                 "seg_hash": data["meta"]["seg_hash"],
                 "clust_hash": data["meta"]["clust_hash"],
                 "created": data["meta"]["creation_date"],
 
                 # METRICS
-                # AVG_SPEAKER_F1 is the CHiME primary clustering metric
                 "AVG_SPEAKER_F1": data["metrics"].get("avg_speaker_f1", 0.0),
                 "AVG_CONV_F1": data["metrics"].get("avg_conversational_f1", 0.0),
                 "AVG_ARI": data["metrics"].get("avg_ari", 0.0),
@@ -168,53 +173,88 @@ def generate_global_overview_csv(experiments_root: str, global_logger: logging.L
             }
 
             # Parameters (flattened)
-            # e.g., seg_onset, clust_threshold
             for p_type in ["segmentation", "clustering"]:
                 for key, val in data["parameters"].get(p_type, {}).items():
+                    # We ignore 'dataset' in params, as we group by it anyway
+                    if key == "dataset":
+                        continue
                     col_name = f"{p_type[:4]}_{key}"  # e.g., seg_onset
                     row[col_name] = val
-                    all_param_keys.add(col_name)
+                    params_by_dataset[dataset_name].add(col_name)
 
-            # Heatmap Data (Sessions)
-            # 1 = Perfect, 0 = Imperfect (for easy conditional formatting/sorting)
-            for sess_id, is_perfect in data.get("session_heatmap", {}).items():
-                row[sess_id] = 1 if is_perfect else 0
-                all_session_keys.add(sess_id)
+            # Session Columns (2 columns per session)
+            # a) Perfect Status (_eva)
+            # b) Confidence (_conf)
 
-            aggregated_data.append(row)
+            heatmap = data.get("session_heatmap", {})
+            confidence_map = data.get("confidence_heatmap", {})
+
+            for sess_id, is_perfect in heatmap.items():
+                # Make session ID shorter for CSV header (e.g., session_138 -> s138)
+                short_sess_id = sess_id.replace("session_", "s")
+
+                # 1. Column: Perfect Status (1/0) -> _eva
+                row[f"{short_sess_id}_eva"] = 1 if is_perfect else 0
+
+                # 2. Column: Confidence -> _conf
+                # Retrieve from the specific confidence map using original key
+                conf_val = confidence_map.get(sess_id, 0.0)
+                row[f"{short_sess_id}_conf"] = conf_val
+
+                # Track short session ID for headers
+                sessions_by_dataset[dataset_name].add(short_sess_id)
+
+            data_by_dataset[dataset_name].append(row)
 
         except Exception as e:
             global_logger.warning(f"Skipping corrupted JSON {jf}: {e}")
 
-    if not aggregated_data:
-        return
+    # 3. Write CSVs per Dataset
+    for dataset_name, rows in data_by_dataset.items():
+        if not rows:
+            continue
 
-    # 3. Organize Columns
-    sorted_sessions = sorted(list(all_session_keys))
-    sorted_params = sorted(list(all_param_keys))
+        # Sort Headers
+        sorted_params = sorted(list(params_by_dataset[dataset_name]))
+        # Sort sessions numerically if possible (s1, s2, s10), otherwise alphabetically
+        # We try to extract number for sorting: s138 -> 138
+        try:
+            sorted_sessions = sorted(list(sessions_by_dataset[dataset_name]),
+                                     key=lambda x: int(x.replace("s", "")) if x.replace("s", "").isdigit() else x)
+        except:
+            sorted_sessions = sorted(list(sessions_by_dataset[dataset_name]))
 
-    # Order: IDs -> Critical Metric -> Other Metrics -> Params -> Heatmap
-    fieldnames = [
-        "dataset", "seg_hash", "clust_hash",
-        "AVG_SPEAKER_F1", "AVG_CONV_F1", "AVG_ARI",
-        "perfect_sessions", "created"
-    ] + sorted_params + sorted_sessions
+        # Unfold Session Columns: s138_eva, s138_conf
+        session_columns = []
+        for sess in sorted_sessions:
+            session_columns.append(f"{sess}_eva")
+            session_columns.append(f"{sess}_conf")
 
-    # 4. Write CSV
-    output_csv_path = os.path.join(experiments_root, "experiments_overview.csv")
+        # Order: IDs -> Critical Metric -> Other Metrics -> Params -> Heatmap
+        fieldnames = [
+            "seg_hash", "clust_hash",
+            "AVG_SPEAKER_F1", "AVG_CONV_F1", "AVG_ARI",
+            "perfect_sessions", "created"
+        ] + sorted_params + session_columns
 
-    try:
-        with open(output_csv_path, 'w', newline='') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            for row in aggregated_data:
-                writer.writerow(row)
+        # Sort rows by AVG_SPEAKER_F1 (Winner on top)
+        rows.sort(key=lambda x: x.get("AVG_SPEAKER_F1", 0), reverse=True)
 
-        global_logger.info(f"Successfully wrote overview to: {output_csv_path}")
-        global_logger.info(f"--> Sort this CSV by 'AVG_SPEAKER_F1' to find the best model!")
+        output_filename = f"overview_{dataset_name}.csv"
+        output_csv_path = os.path.join(experiments_root, output_filename)
 
-    except Exception as e:
-        global_logger.error(f"Failed to write overview CSV: {e}")
+        try:
+            with open(output_csv_path, 'w', newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                for r in rows:
+                    writer.writerow(r)
+
+            global_logger.info(f"Successfully generated overview for '{dataset_name}': {output_csv_path}")
+            global_logger.info(f"--> Sort this CSV by 'AVG_SPEAKER_F1' to find the best model!")
+
+        except Exception as e:
+            global_logger.error(f"Failed to write CSV for {dataset_name}: {e}")
 
 
 def _save_session_csv(output_dir: str,
@@ -285,6 +325,23 @@ def _save_experiment_result_json(exp_model: ClusteringExperimentModel,
             for res in summary.session_results
         }
 
+        # construct per_speaker f1-score dictionary
+        per_speaker_scores_map = {}
+        for res in summary.session_results:
+            if res.per_speaker_f1:
+                per_speaker_scores_map[res.session_id] = res.per_speaker_f1
+            else:
+                per_speaker_scores_map[res.session_id] = {}
+
+        # Prepare Confidence Heatmap (NEW)
+        # Logic: Confidence = 1.0 - max_merge_distance
+        confidence_map = {}
+        for res in summary.session_results:
+            # max_merge_distance comes from the clustering JSON
+            conf = 1.0 - res.max_merge_distance
+            # Ensure non-negative just in case
+            confidence_map[res.session_id] = round(max(0.0, conf), 4)
+
         # 3. Build the structure
         data = {
             "meta": {
@@ -304,7 +361,9 @@ def _save_experiment_result_json(exp_model: ClusteringExperimentModel,
                 "perfect_sessions_count": sum(1 for r in summary.session_results if r.is_perfect),
                 "total_sessions": len(summary.session_results)
             },
-            "session_heatmap": session_status_map
+            "session_heatmap": session_status_map,
+            "confidence_heatmap": confidence_map, # <-- Added (User requested this probability)
+            "per_speaker_scores": per_speaker_scores_map
         }
 
         # 4. Save to JSON
