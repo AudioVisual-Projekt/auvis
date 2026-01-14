@@ -27,6 +27,7 @@ def plot_barchart(
     annotate=True,
     annotate_fmt="{:.3f}",
     annotate_offset=0.005,
+    annotation_rotation=90,
     rotation=45,
     legend=True,
     legend_title=None,
@@ -114,7 +115,8 @@ def plot_barchart(
                 f"max({cg})\n{annotate_fmt.format(y)}",
                 ha="center",
                 va="bottom",
-                fontsize=8
+                fontsize=8,
+                rotation=annotation_rotation
             )
 
     # ---------- Achsen ----------
@@ -155,7 +157,8 @@ if __name__ == '__main__':
     OUTPUT_DIR = BASE_DIR / "results_data_plots"
 
     labelmap = {'Pairwise_F1_mean': 'Mittlerer Pairwise-F1 Score',
-                'Macro-F1_per_speaker_mean': 'Mittlerer F1 Score pro Sprecher'}
+                'Macro-F1_per_speaker_mean': ('Mittlerer F1 Score ' r'$\mathbf{pro\ Sprecher}$'),
+                'Macro-F1_per_Speaker_mean': ('Mittlerer F1 Score ' r'$\mathbf{pro\ Sprecher}$')}
     parametermap = {'threshold': 'Score - Threshold',
                     'linkage': 'Linkage',
                     "tolerance": "Overlap - Toleranz",
@@ -169,172 +172,230 @@ if __name__ == '__main__':
     df_all = df_all.drop(
         columns=["Micro-F1_per_speaker_mean", "ARI_std", "Pairwise_F1_std", "Macro-F1_per_speaker_std",
                  "Micro-F1_per_speaker_std"])
+
     #############################################################################################
     # ### ab hier  Barplot f1 scores bei variablem threshold und linkage
-    # df_part = df_all.query("tolerance == 0 and non_linear.isna() and weight_by_length == False")
-    # df_part = df_part.drop(columns=["tolerance", "non_linear", "weight_by_length", "ARI_mean", "Unnamed: 0"])
-    # df_part = df_part.drop_duplicates(ignore_index=True)
-    # df_part.reset_index()
+    df_part = df_all.query("tolerance == 0 and non_linear.isna() and weight_by_length == False")
+    df_part = df_part.drop(columns=["tolerance", "non_linear", "weight_by_length", "ARI_mean", "Unnamed: 0"])
+    df_part = df_part.drop_duplicates(ignore_index=True)
+    df_part.reset_index()
     # df_part = df_part.reset_index(drop=True)
-    # x_group = 'threshold'  ## für die Gruppierung entlang der x-Achse
-    # color_group = 'linkage'  ## für die Farben der Balken
-    # 
-    # fig, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=True)
-    # 
+    x_group = 'threshold'  ## für die Gruppierung entlang der x-Achse
+    color_group = 'linkage'  ## für die Farben der Balken
+    # df_part = pd.read_csv("df_grid_search_cluster_dev.csv", delimiter=";")
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=True)
+
+    balkenhoehe_1 = 'Pairwise_F1_mean'
+    # title = f'{labelmap[balkenhoehe]} \nbei verschiedenen Clusterparametern\n{parametermap[x_group]} und {parametermap[color_group]}'
+    title_1 = f'{labelmap[balkenhoehe_1]}'
+    balkenhoehe_2 = 'Macro-F1_per_speaker_mean'
+    # balkenhoehe_2 = 'Macro-F1_per_Speaker_mean'
+    # title = f'{labelmap[balkenhoehe]} \nbei verschiedenen Clusterparametern\n{parametermap[x_group]} und {parametermap[color_group]}'
+    title_2 = f'{labelmap[balkenhoehe_2]}'
+    plot_barchart(
+        axes[0],
+        df_part,
+        bar_col=balkenhoehe_1,  ## legt die Balkenhöhe fest, = y-Wert
+        x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
+        color_group_col=color_group,  ## für die Farben der Balken
+        labelmap=labelmap,
+        paramap=parametermap,
+        yrange=[0.4, 1],
+        gap=0.15,
+        title=title_1,
+        legend_title=parametermap['linkage'],
+        annotate=True,
+        highlight_max_xticks=True,
+        highlight_fontweight='bold',
+        xtick_fontsize=8,
+        ytick_fontsize=8
+    )
+
+    plot_barchart(
+        axes[1],
+        df_part,
+        bar_col=balkenhoehe_2,  ## legt die Balkenhöhe fest, = y-Wert
+        x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
+        color_group_col=color_group,  ## für die Farben der Balken
+        labelmap=labelmap,
+        paramap=parametermap,
+        yrange=[0.4, 1],
+        gap=0.15,
+        title=title_2,
+        legend_title=parametermap['linkage'],
+        annotate=True,
+        highlight_max_xticks=True,
+        highlight_fontweight='bold',
+        xtick_fontsize=8,
+        ytick_fontsize=8
+    )
+
+    outfilename = f'{balkenhoehe_1}_und_{balkenhoehe_2}_at_variablem_{x_group}_und_{color_group}_neu2.png'
+    plotfile_out = OUTPUT_DIR / outfilename
+
+    fig.savefig(plotfile_out, dpi=300, bbox_inches="tight")
+    plt.show()
+
+    # ################################################################################################
+    # ##############################################################################################
+    # ### ab hier  Barplot f1 scores bei variablem preprocessing
+    # '''
+    #     tolerances: Liste der Toleranzwerte in sek bei denen Überlappendes Sprechen nicht als Überlapp gewertet wird
+    #     weight_options: Liste False und True, falls True, werden Overlaps bei längeren Segmenten stärker bestraft.
+    #     non_linears: Liste mit Optionen für die Gewichtung von Overlap vs. Non-Overlap (z. B. statt linear, mit einer Sigmoid- oder Log-Funktion).
+    # '''
+    # ## weight_by_length == False
+    # df_part_weight_false = df_all.query("linkage == 'complete' and threshold == 0.74 and weight_by_length == False")
+    # df_part_weight_false = df_part_weight_false.drop(columns=["linkage", "threshold","ARI_mean", "weight_by_length", "Unnamed: 0"])
+    # df_part_weight_false = df_part_weight_false.fillna({'non_linear':'linear'})
+    # df_part_weight_false = df_part_weight_false.drop_duplicates(ignore_index=True)
+    # df_part_weight_false.reset_index()
+    # df_part_weight_false = df_part_weight_false.reset_index(drop=True)
+    #
+    # ### weight_by_length == True
+    # df_part_weight_true = df_all.query("linkage == 'complete' and threshold == 0.74 and weight_by_length == True")
+    # df_part_weight_true = df_part_weight_true.drop(columns=["ARI_mean", "weight_by_length", "Unnamed: 0"])
+    # df_part_weight_true = df_part_weight_true.fillna({'non_linear': 'linear'})
+    # df_part_weight_true = df_part_weight_true.drop_duplicates(ignore_index=True)
+    # df_part_weight_true.reset_index()
+    # df_part_weight_true = df_part_weight_true.reset_index(drop=True)
+    #
+    # x_group = 'tolerance'  ## für die Gruppierung entlang der x-Achse
+    # color_group = 'non_linear'  ## für die Farben der Balken
+    #
+    #
+    # fig, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=False)
     # balkenhoehe_1 = 'Pairwise_F1_mean'
-    # # title = f'{labelmap[balkenhoehe]} \nbei verschiedenen Clusterparametern\n{parametermap[x_group]} und {parametermap[color_group]}'
-    # title_1 = f'{labelmap[balkenhoehe_1]}'
-    # balkenhoehe_2 = 'Macro-F1_per_speaker_mean'
-    # # title = f'{labelmap[balkenhoehe]} \nbei verschiedenen Clusterparametern\n{parametermap[x_group]} und {parametermap[color_group]}'
-    # title_2 = f'{labelmap[balkenhoehe_2]}'
+    # title_0 = f'{labelmap[balkenhoehe_1]}\n' r'$\mathbf{ohne}$' f' {parametermap["weight_by_length"]}'
+    # title_1 = f'{labelmap[balkenhoehe_1]}\n' r'$\mathbf{mit}$' f' {parametermap["weight_by_length"]}'
+    #
     # plot_barchart(
     #     axes[0],
-    #     df_part,
+    #     df_part_weight_false,
     #     bar_col=balkenhoehe_1,  ## legt die Balkenhöhe fest, = y-Wert
     #     x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
     #     color_group_col=color_group,  ## für die Farben der Balken
     #     labelmap=labelmap,
     #     paramap=parametermap,
-    #     yrange=[0.6, 1],
+    #     yrange=[0.3, 1.1],
     #     gap=0.15,
-    #     title=title_1,
-    #     legend_title=parametermap['linkage'],
-    #     highlight_max_xticks=True,
-    #     highlight_fontweight='bold',
+    #     title=title_0,
+    #     legend_title=parametermap['non_linear'],
+    #     highlight_max_xticks=False,
     #     xtick_fontsize=8,
     #     ytick_fontsize=8
     # )
-    # 
+    #
     # plot_barchart(
     #     axes[1],
-    #     df_part,
+    #     df_part_weight_true,
+    #     bar_col=balkenhoehe_1,  ## legt die Balkenhöhe fest, = y-Wert
+    #     x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
+    #     color_group_col=color_group,  ## für die Farben der Balken
+    #     labelmap=labelmap,
+    #     paramap=parametermap,
+    #     yrange=[0.3, 1.1],
+    #     gap=0.15,
+    #     title=title_1,
+    #     legend_title=parametermap['non_linear'],
+    #     highlight_max_xticks=False,
+    #     xtick_fontsize=8,
+    #     ytick_fontsize=8
+    # )
+    #
+    # plt.tight_layout()
+    # outfilename = f'{balkenhoehe_1}_at_variablem_{x_group}_und_{color_group}_und_overlap_gewichtung.png'
+    # plotfile_out = OUTPUT_DIR / outfilename
+    #
+    # fig.savefig(plotfile_out, dpi=300, bbox_inches="tight")
+    # plt.show()
+    # ################################################################################################
+    # # fig, axes = plt.subplots(2, 2, figsize=(12, 6), sharey=True)
+    # # # axes ist 2x2 Array:
+    # # # [[axes[0,0], axes[0,1]],
+    # # #  [axes[1,0], axes[1,1]]]
+    # fig, axes = plt.subplots(2, 2, figsize=(12, 12),  constrained_layout=True)
+    # fig.set_constrained_layout_pads(hspace=0.2)
+    # # fig.subplots_adjust(hspace=0.5)  # Standard ~0.2
+    #
+    # balkenhoehe_1 = 'Pairwise_F1_mean'
+    # balkenhoehe_2 = 'Macro-F1_per_speaker_mean'
+    # title_0 = f'{labelmap[balkenhoehe_1]}\n' r'$\mathbf{ohne}$' f' {parametermap["weight_by_length"]}'
+    # title_1 = f'{labelmap[balkenhoehe_1]}\n' r'$\mathbf{mit}$' f' {parametermap["weight_by_length"]}'
+    # title_2 = f'{labelmap[balkenhoehe_2]}\n' r'$\mathbf{ohne}$' f' {parametermap["weight_by_length"]}'
+    # title_3 = f'{labelmap[balkenhoehe_2]}\n' r'$\mathbf{mit}$' f' {parametermap["weight_by_length"]}'
+    #
+    # plot_barchart(
+    #     axes[0,0],
+    #     df_part_weight_false,
+    #     bar_col=balkenhoehe_1,  ## legt die Balkenhöhe fest, = y-Wert
+    #     x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
+    #     color_group_col=color_group,  ## für die Farben der Balken
+    #     labelmap=labelmap,
+    #     paramap=parametermap,
+    #     yrange=[0.3, 1.1],
+    #     gap=0.15,
+    #     title=title_0,
+    #     legend_title=parametermap['non_linear'],
+    #     highlight_max_xticks=False,
+    #     xtick_fontsize=8,
+    #     ytick_fontsize=8
+    # )
+    #
+    # plot_barchart(
+    #     axes[1,0],
+    #     df_part_weight_true,
+    #     bar_col=balkenhoehe_1,  ## legt die Balkenhöhe fest, = y-Wert
+    #     x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
+    #     color_group_col=color_group,  ## für die Farben der Balken
+    #     labelmap=labelmap,
+    #     paramap=parametermap,
+    #     yrange=[0.3, 1.1],
+    #     gap=0.15,
+    #     title=title_1,
+    #     legend_title=parametermap['non_linear'],
+    #     highlight_max_xticks=False,
+    #     xtick_fontsize=8,
+    #     ytick_fontsize=8
+    # )
+    #
+    # plot_barchart(
+    #     axes[0,1],
+    #     df_part_weight_false,
     #     bar_col=balkenhoehe_2,  ## legt die Balkenhöhe fest, = y-Wert
     #     x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
     #     color_group_col=color_group,  ## für die Farben der Balken
     #     labelmap=labelmap,
     #     paramap=parametermap,
-    #     yrange=[0.6, 1],
+    #     yrange=[0.3, 1.1],
     #     gap=0.15,
     #     title=title_2,
-    #     legend_title=parametermap['linkage'],
-    #     highlight_max_xticks=True,
-    #     highlight_fontweight='bold',
+    #     legend_title=parametermap['non_linear'],
+    #     highlight_max_xticks=False,
     #     xtick_fontsize=8,
     #     ytick_fontsize=8
     # )
-    # 
-    # outfilename = f'{balkenhoehe_1}_und_{balkenhoehe_2}_at_variablem_{x_group}_und_{color_group}'
+    #
+    # plot_barchart(
+    #     axes[1,1],
+    #     df_part_weight_true,
+    #     bar_col=balkenhoehe_2,  ## legt die Balkenhöhe fest, = y-Wert
+    #     x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
+    #     color_group_col=color_group,  ## für die Farben der Balken
+    #     labelmap=labelmap,
+    #     paramap=parametermap,
+    #     yrange=[0.3, 1.1],
+    #     gap=0.15,
+    #     title=title_3,
+    #     legend_title=parametermap['non_linear'],
+    #     highlight_max_xticks=False,
+    #     xtick_fontsize=8,
+    #     ytick_fontsize=8
+    # )
+    #
+    # # plt.tight_layout()
+    # outfilename = f'{balkenhoehe_1}_und_{balkenhoehe_2}_at_variablem_{x_group}_und_{color_group}_und_overlap_gewichtung.png'
     # plotfile_out = OUTPUT_DIR / outfilename
-    # 
+    #
     # fig.savefig(plotfile_out, dpi=300, bbox_inches="tight")
     # plt.show()
-
-    ################################################################################################
-    ### ab hier  Barplot f1 scores bei variablem preprocessing
-    '''
-        tolerances: Liste der Toleranzwerte in sek bei denen Überlappendes Sprechen nicht als Überlapp gewertet wird
-        weight_options: Liste False und True, falls True, werden Overlaps bei längeren Segmenten stärker bestraft.
-        non_linears: Liste mit Optionen für die Gewichtung von Overlap vs. Non-Overlap (z. B. statt linear, mit einer Sigmoid- oder Log-Funktion).
-    '''
-    df_part_weight_false = df_all.query("linkage == 'complete' and threshold == 0.74 and weight_by_length == False")  ## weight_by_length == False
-    df_part_weight_false = df_part_weight_false.drop(columns=["linkage", "threshold","ARI_mean", "weight_by_length", "Unnamed: 0"])
-    df_part_weight_false = df_part_weight_false.fillna({'non_linear':'linear'})
-    df_part_weight_false = df_part_weight_false.drop_duplicates(ignore_index=True)
-    df_part_weight_false.reset_index()
-    df_part_weight_false = df_part_weight_false.reset_index(drop=True)
-
-    # print(df_part_weight_false)
-    df_part_weight_true = df_all.query("linkage == 'complete' and threshold == 0.74 and weight_by_length == True")  ## weight_by_length == True
-    df_part_weight_true = df_part_weight_true.drop(columns=["ARI_mean", "weight_by_length", "Unnamed: 0"])
-    df_part_weight_true = df_part_weight_true.fillna({'non_linear': 'linear'})
-    df_part_weight_true = df_part_weight_true.drop_duplicates(ignore_index=True)
-    df_part_weight_true.reset_index()
-    df_part_weight_true = df_part_weight_true.reset_index(drop=True)
-
-    x_group = 'tolerance'  ## für die Gruppierung entlang der x-Achse
-    color_group = 'non_linear'  ## für die Farben der Balken
-
-    fig, axes = plt.subplots(2, 2, figsize=(12, 6), sharey=True)
-    # axes ist 2x2 Array:
-    # [[axes[0,0], axes[0,1]],
-    #  [axes[1,0], axes[1,1]]]
-
-    balkenhoehe_1 = 'Pairwise_F1_mean'
-    title_0 = f'{labelmap[balkenhoehe_1]}\n{parametermap["weight_by_length"]} = False'
-    title_2 = f'{labelmap[balkenhoehe_1]}\n{parametermap["weight_by_length"]} = True'
-    balkenhoehe_2 = 'Macro-F1_per_speaker_mean'
-    title_1 = f'{labelmap[balkenhoehe_2]}\n{parametermap["weight_by_length"]} = False'
-    title_3 = f'{labelmap[balkenhoehe_2]}\n{parametermap["weight_by_length"]} = True'
-    plot_barchart(
-        axes[0,0],
-        df_part_weight_false,
-        bar_col=balkenhoehe_1,  ## legt die Balkenhöhe fest, = y-Wert
-        x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
-        color_group_col=color_group,  ## für die Farben der Balken
-        labelmap=labelmap,
-        paramap=parametermap,
-        yrange=[0.6, 1],
-        gap=0.15,
-        title=title_0,
-        legend_title=parametermap['non_linear'],
-        highlight_max_xticks=False,
-        xtick_fontsize=8,
-        ytick_fontsize=8
-    )
-
-    plot_barchart(
-        axes[0,1],
-        df_part_weight_false,
-        bar_col=balkenhoehe_2,  ## legt die Balkenhöhe fest, = y-Wert
-        x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
-        color_group_col=color_group,  ## für die Farben der Balken
-        labelmap=labelmap,
-        paramap=parametermap,
-        yrange=[0.6, 1],
-        gap=0.15,
-        title=title_1,
-        legend_title=parametermap['non_linear'],
-        highlight_max_xticks=False,
-        xtick_fontsize=8,
-        ytick_fontsize=8
-    )
-    plot_barchart(
-        axes[1,0],
-        df_part_weight_true,
-        bar_col=balkenhoehe_1,  ## legt die Balkenhöhe fest, = y-Wert
-        x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
-        color_group_col=color_group,  ## für die Farben der Balken
-        labelmap=labelmap,
-        paramap=parametermap,
-        yrange=[0.6, 1],
-        gap=0.15,
-        title=title_2,
-        legend_title=parametermap['non_linear'],
-        highlight_max_xticks=False,
-        xtick_fontsize=8,
-        ytick_fontsize=8
-    )
-
-    plot_barchart(
-        axes[1,1],
-        df_part_weight_true,
-        bar_col=balkenhoehe_2,  ## legt die Balkenhöhe fest, = y-Wert
-        x_group_col=x_group,  ## für die Gruppierung entlang der x-Achse
-        color_group_col=color_group,  ## für die Farben der Balken
-        labelmap=labelmap,
-        paramap=parametermap,
-        yrange=[0.6, 1],
-        gap=0.15,
-        title=title_3,
-        legend_title=parametermap['non_linear'],
-        highlight_max_xticks=False,
-        xtick_fontsize=8,
-        ytick_fontsize=8
-    )
-    plt.tight_layout()
-    outfilename = f'{balkenhoehe_1}_und_{balkenhoehe_2}_at_variablem_{x_group}_und_{color_group}'
-    plotfile_out = OUTPUT_DIR / outfilename
-
-    fig.savefig(plotfile_out, dpi=300, bbox_inches="tight")
-    plt.show()
-    ################################################################################################
