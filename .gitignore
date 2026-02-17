@@ -4,4 +4,9 @@ venv
 /team_c/data-bin/dev
 /team_c/data-bin/output
 .ipynb_checkpoints/
+
+auvis_system/model-bin
+auvis_system/conda-env
+auvis_system/data-bin
+
 __pycache__/
