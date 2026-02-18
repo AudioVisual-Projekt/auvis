@@ -4,9 +4,13 @@ venv
 /team_c/data-bin/dev
 /team_c/data-bin/output
 .ipynb_checkpoints/
+__pycache__/
 
-auvis_system/model-bin
+auvis_system/model-bin/auto_avsr
+auvis_system/model-bin/avsr_cocktail
+auvis_system/model-bin/avsr_cocktail_mcorec_finetune
+auvis_system/model-bin/face_alignment
+auvis_system/model-bin/face_detection
+
 auvis_system/conda-env
 auvis_system/data-bin
-
-__pycache__/
