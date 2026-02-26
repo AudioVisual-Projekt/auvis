@@ -1,0 +1,10 @@
+method;avg_spk_wer
+baseline;0.53
+MediaPipe_V0;0.601
+MediaPipe_V1;0.729
+MediaPipe_V2;0.645
+MediaPipe_V3;0.667
+MediaPipe_V4;0.607
+MediaPipe_V5;0.755
+MediaPipe_V6;0.637
+MediaPipe_V7;0.610

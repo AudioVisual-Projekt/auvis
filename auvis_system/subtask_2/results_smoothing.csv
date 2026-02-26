@@ -1,0 +1,9 @@
+method;avg_spk_wer
+baseline;0.53
+baseline_with_savgol;0.615
+baseline_with_moving_avg;0.591
+baseline_with_gaussian;0.689
+mediapipe;0.601
+mediapipe_with_savgol;0.68
+mediapipe_with_moving_avg;0.663
+mediapipe_with_gaussian;0.717
