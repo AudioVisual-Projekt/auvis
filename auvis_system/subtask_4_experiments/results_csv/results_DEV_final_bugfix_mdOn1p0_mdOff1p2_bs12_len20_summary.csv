@@ -1,0 +1,2 @@
+model,avg_conv_f1,avg_speaker_wer,avg_joint_error
+DEV_final_bugfix_mdOn1p0_mdOff1p2_bs12_len20,0.8552820512820513,0.4943156666666667,0.3317675
