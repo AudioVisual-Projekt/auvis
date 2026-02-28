@@ -59,7 +59,7 @@ auvis_system/          # Modifizierte CHiME-9-Baseline (Kernsystem)
 ├── script/            # angepasste Inference, Training und Evaluationsskripte
 ├── src/               # Modellarchitekturen und Hilfsfunktionen
 ├── subtask_1_additional_files/  # Experimente Subtask 1
-├── subtask_2/         # Experimente Subtask 2
+├── subtask_2/                   # Experimente Subtask 2
 ├── subtask_3_experiments/       # Experimente Subtask 3
 ├── subtask_4_experiments/       # Experimente Subtask 4
 └── subtask_5_experiments/       # Experimente Subtask 5
