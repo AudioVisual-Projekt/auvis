@@ -45,13 +45,14 @@ sondern auf der **Optimierung der Schnittstellen und Parameterkopplungen** zwisc
 | Metrik | Baseline | AUVIS (optimiert) |
 |------|---------|------------------|
 | Clustering‑F1 (pro Sprecher) | 0,789 | **0,906** |
-| Relative Verbesserung Clustering | – | **+14,8 %** |
+| Relative Verbesserung Clustering | – | **+14,8 %** |
+| Speaker WER | 0,4987 | **0,4943** |
+| Relative Reduktion WER | – | **−0,88 %** |
 | Joint ASR‑Clustering Error Rate | 0,355 | **0,294** |
-| Relative Reduktion JACR | – | **−17,09 %** |
+| Relative Reduktion JACR | – | **−17,09 %** |
 
 Die signifikanten Leistungsgewinne resultieren primär aus der **Optimierung des Konversations‑Clusterings**
 und der vorgelagerten ASD‑Segmentierung.
-
 
 ## 4. Ways of working
 Ways of working ist im Wiki niedergeschrieben.
