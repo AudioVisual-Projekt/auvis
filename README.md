@@ -36,6 +36,7 @@ sondern auf der **Optimierung der Schnittstellen und Parameterkopplungen** zwisc
   - alternativen ASD‑Architekturen
   - MediaPipe‑basierter Landmark‑Extraktion
   - LLM‑gestützter Transkript‑Nachkorrektur
+  - alternatives ASR‑Modell (Whisper‑Flamingo)
 - Nachweis, dass **System‑ und Schnittstellenoptimierung** größere Leistungsgewinne erzielt
   als der Einsatz komplexerer Einzelmodelle
 
