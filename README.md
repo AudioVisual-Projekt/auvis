@@ -22,7 +22,7 @@ Das AUVIS-System basiert auf der [offiziellen CHiME‑9‑Baseline](https://gith
 
 **Ausgabe:** Sprecherzugeordnete Transkripte und Konversations‑IDs
 
-## 3. zentrale Beiträge dieser Arbeit
+## 3. Zentrale Beiträge dieser Arbeit
 
 Für jeden der fünf Subtasks der Pipeline wurden systematisch Experimente durchgeführt, um Verbesserungen gegenüber der Baseline zu erzielen.
 
