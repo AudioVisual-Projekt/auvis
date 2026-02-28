@@ -7,10 +7,9 @@ Dieses Repository enthält das **AUVIS‑System**, das im Rahmen einer Projektar
 Der Fokus des Systems liegt auf der robusten **audiovisuellen Spracherkennung** und dem **Konversations‑Clustering**
 in unstrukturierten, realitätsnahen Mehrsprecher‑Szenarien („in‑the‑wild“) auf Basis von 360°‑Video‑ und Audiodaten.
 
-
 ## 1. Systemübersicht
 
-Das AUVIS‑System basiert auf der offiziellen CHiME‑9‑Baseline und folgt einer modularen, sequenziellen Pipeline:
+Das AUVIS‑System basiert auf der [offiziellen CHiME‑9‑Baseline](https://github.com/MCoRec/mcorec_baseline) und folgt einer modularen, sequenziellen Pipeline:
 
 **Eingabe:** 360° Video + Audio
 
@@ -22,9 +21,7 @@ Das AUVIS‑System basiert auf der offiziellen CHiME‑9‑Baseline und folgt ei
 
 **Ausgabe:** Sprecherzugeordnete Transkripte und Konversations‑IDs
 
-Im Gegensatz zu vielen alternativen Ansätzen liegt der Schwerpunkt **nicht** auf dem Austausch einzelner Modelle,
-sondern auf der **Optimierung der Schnittstellen und Parameterkopplungen** zwischen den Modulen.
-
+Es wurden die bereitgestellten Daten der Challenge genutzt. [(Quelle)](https://huggingface.co/datasets/MCoRecChallenge/MCoRec)
 
 ## 2. Zentrale Beiträge dieser Arbeit
 
