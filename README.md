@@ -1,6 +1,5 @@
 
 # Projektgruppe:  Audiovisuelle Gesprächsanalyse  SoSe25+WiSe25/26
-System für die CHiME‑9 MCoRec Challenge
 
 Dieses Repository enthält das **AUVIS‑System**, das im Rahmen einer Masterarbeit entwickelt und als Beitrag zur  
 **CHiME‑9 Multi‑Modal Context‑aware Recognition (MCoRec) Challenge** eingereicht wurde.
