@@ -1,0 +1,316 @@
+{
+    "spk_0": {
+        "ego": {
+            "video": "speakers/spk_0/ego_video.mp4",
+            "uem": {
+                "start": 3.5984,
+                "end": 365.5308
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_0/ego_crops/track_00.mp4",
+                    "asd": "speakers/spk_0/ego_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_0/ego_crops/track_00.json",
+                    "lip": "speakers/spk_0/ego_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_0/ego_crops/track_00_bbox.json"
+                }
+            ]
+        },
+        "central": {
+            "video": "central_video.mp4",
+            "uem": {
+                "start": 27.0001,
+                "end": 388.9897
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_0/central_crops/track_00.mp4",
+                    "asd": "speakers/spk_0/central_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_0/central_crops/track_00.json",
+                    "lip": "speakers/spk_0/central_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_0/central_crops/track_00_bbox.json"
+                }
+            ]
+        }
+    },
+    "spk_1": {
+        "ego": {
+            "video": "speakers/spk_1/ego_video.mp4",
+            "uem": {
+                "start": 2.9695,
+                "end": 364.6936
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_1/ego_crops/track_00.mp4",
+                    "asd": "speakers/spk_1/ego_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_1/ego_crops/track_00.json",
+                    "lip": "speakers/spk_1/ego_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_1/ego_crops/track_00_bbox.json"
+                }
+            ]
+        },
+        "central": {
+            "video": "central_video.mp4",
+            "uem": {
+                "start": 27.0001,
+                "end": 388.9897
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_1/central_crops/track_00.mp4",
+                    "asd": "speakers/spk_1/central_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_1/central_crops/track_00.json",
+                    "lip": "speakers/spk_1/central_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_1/central_crops/track_00_bbox.json"
+                }
+            ]
+        }
+    },
+    "spk_2": {
+        "ego": {
+            "video": "speakers/spk_2/ego_video.mp4",
+            "uem": {
+                "start": 2.8043,
+                "end": 364.7495
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_2/ego_crops/track_00.mp4",
+                    "asd": "speakers/spk_2/ego_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_2/ego_crops/track_00.json",
+                    "lip": "speakers/spk_2/ego_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_2/ego_crops/track_00_bbox.json"
+                }
+            ]
+        },
+        "central": {
+            "video": "central_video.mp4",
+            "uem": {
+                "start": 27.0001,
+                "end": 388.9897
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_2/central_crops/track_00.mp4",
+                    "asd": "speakers/spk_2/central_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_2/central_crops/track_00.json",
+                    "lip": "speakers/spk_2/central_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_2/central_crops/track_00_bbox.json"
+                }
+            ]
+        }
+    },
+    "spk_3": {
+        "ego": {
+            "video": "speakers/spk_3/ego_video.mp4",
+            "uem": {
+                "start": 2.5852,
+                "end": 364.5548
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_3/ego_crops/track_00.mp4",
+                    "asd": "speakers/spk_3/ego_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_3/ego_crops/track_00.json",
+                    "lip": "speakers/spk_3/ego_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_3/ego_crops/track_00_bbox.json"
+                },
+                {
+                    "video": "speakers/spk_3/ego_crops/track_01.mp4",
+                    "asd": "speakers/spk_3/ego_crops/track_01_asd.json",
+                    "crop_metadata": "speakers/spk_3/ego_crops/track_01.json",
+                    "lip": "speakers/spk_3/ego_crops/track_01_lip.av.mp4",
+                    "bbox": "speakers/spk_3/ego_crops/track_01_bbox.json"
+                }
+            ]
+        },
+        "central": {
+            "video": "central_video.mp4",
+            "uem": {
+                "start": 27.0001,
+                "end": 388.9897
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_3/central_crops/track_00.mp4",
+                    "asd": "speakers/spk_3/central_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_3/central_crops/track_00.json",
+                    "lip": "speakers/spk_3/central_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_3/central_crops/track_00_bbox.json"
+                }
+            ]
+        }
+    },
+    "spk_4": {
+        "ego": {
+            "video": "speakers/spk_4/ego_video.mp4",
+            "uem": {
+                "start": 3.1212,
+                "end": 365.0749
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_4/ego_crops/track_00.mp4",
+                    "asd": "speakers/spk_4/ego_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_4/ego_crops/track_00.json",
+                    "lip": "speakers/spk_4/ego_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_4/ego_crops/track_00_bbox.json"
+                },
+                {
+                    "video": "speakers/spk_4/ego_crops/track_01.mp4",
+                    "asd": "speakers/spk_4/ego_crops/track_01_asd.json",
+                    "crop_metadata": "speakers/spk_4/ego_crops/track_01.json",
+                    "lip": "speakers/spk_4/ego_crops/track_01_lip.av.mp4",
+                    "bbox": "speakers/spk_4/ego_crops/track_01_bbox.json"
+                }
+            ]
+        },
+        "central": {
+            "video": "central_video.mp4",
+            "uem": {
+                "start": 27.0001,
+                "end": 388.9897
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_4/central_crops/track_00.mp4",
+                    "asd": "speakers/spk_4/central_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_4/central_crops/track_00.json",
+                    "lip": "speakers/spk_4/central_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_4/central_crops/track_00_bbox.json"
+                }
+            ]
+        }
+    },
+    "spk_5": {
+        "ego": {
+            "video": "speakers/spk_5/ego_video.mp4",
+            "uem": {
+                "start": 3.0614,
+                "end": 365.1777
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_5/ego_crops/track_00.mp4",
+                    "asd": "speakers/spk_5/ego_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_5/ego_crops/track_00.json",
+                    "lip": "speakers/spk_5/ego_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_5/ego_crops/track_00_bbox.json"
+                },
+                {
+                    "video": "speakers/spk_5/ego_crops/track_01.mp4",
+                    "asd": "speakers/spk_5/ego_crops/track_01_asd.json",
+                    "crop_metadata": "speakers/spk_5/ego_crops/track_01.json",
+                    "lip": "speakers/spk_5/ego_crops/track_01_lip.av.mp4",
+                    "bbox": "speakers/spk_5/ego_crops/track_01_bbox.json"
+                }
+            ]
+        },
+        "central": {
+            "video": "central_video.mp4",
+            "uem": {
+                "start": 27.0001,
+                "end": 388.9897
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_5/central_crops/track_00.mp4",
+                    "asd": "speakers/spk_5/central_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_5/central_crops/track_00.json",
+                    "lip": "speakers/spk_5/central_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_5/central_crops/track_00_bbox.json"
+                }
+            ]
+        }
+    },
+    "spk_6": {
+        "ego": {
+            "video": "speakers/spk_6/ego_video.mp4",
+            "uem": {
+                "start": 13.303,
+                "end": 375.2453
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_6/ego_crops/track_00.mp4",
+                    "asd": "speakers/spk_6/ego_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_6/ego_crops/track_00.json",
+                    "lip": "speakers/spk_6/ego_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_6/ego_crops/track_00_bbox.json"
+                },
+                {
+                    "video": "speakers/spk_6/ego_crops/track_01.mp4",
+                    "asd": "speakers/spk_6/ego_crops/track_01_asd.json",
+                    "crop_metadata": "speakers/spk_6/ego_crops/track_01.json",
+                    "lip": "speakers/spk_6/ego_crops/track_01_lip.av.mp4",
+                    "bbox": "speakers/spk_6/ego_crops/track_01_bbox.json"
+                }
+            ]
+        },
+        "central": {
+            "video": "central_video.mp4",
+            "uem": {
+                "start": 27.0001,
+                "end": 388.9897
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_6/central_crops/track_00.mp4",
+                    "asd": "speakers/spk_6/central_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_6/central_crops/track_00.json",
+                    "lip": "speakers/spk_6/central_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_6/central_crops/track_00_bbox.json"
+                }
+            ]
+        }
+    },
+    "spk_7": {
+        "ego": {
+            "video": "speakers/spk_7/ego_video.mp4",
+            "uem": {
+                "start": 2.7169,
+                "end": 364.6543
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_7/ego_crops/track_00.mp4",
+                    "asd": "speakers/spk_7/ego_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_7/ego_crops/track_00.json",
+                    "lip": "speakers/spk_7/ego_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_7/ego_crops/track_00_bbox.json"
+                },
+                {
+                    "video": "speakers/spk_7/ego_crops/track_01.mp4",
+                    "asd": "speakers/spk_7/ego_crops/track_01_asd.json",
+                    "crop_metadata": "speakers/spk_7/ego_crops/track_01.json",
+                    "lip": "speakers/spk_7/ego_crops/track_01_lip.av.mp4",
+                    "bbox": "speakers/spk_7/ego_crops/track_01_bbox.json"
+                }
+            ]
+        },
+        "central": {
+            "video": "central_video.mp4",
+            "uem": {
+                "start": 27.0001,
+                "end": 388.9897
+            },
+            "crops": [
+                {
+                    "video": "speakers/spk_7/central_crops/track_00.mp4",
+                    "asd": "speakers/spk_7/central_crops/track_00_asd.json",
+                    "crop_metadata": "speakers/spk_7/central_crops/track_00.json",
+                    "lip": "speakers/spk_7/central_crops/track_00_lip.av.mp4",
+                    "bbox": "speakers/spk_7/central_crops/track_00_bbox.json"
+                },
+                {
+                    "video": "speakers/spk_7/central_crops/track_01.mp4",
+                    "asd": "speakers/spk_7/central_crops/track_01_asd.json",
+                    "crop_metadata": "speakers/spk_7/central_crops/track_01.json",
+                    "lip": "speakers/spk_7/central_crops/track_01_lip.av.mp4",
+                    "bbox": "speakers/spk_7/central_crops/track_01_bbox.json"
+                }
+            ]
+        }
+    }
+}
