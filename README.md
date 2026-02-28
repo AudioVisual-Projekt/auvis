@@ -4,12 +4,13 @@
 Dieses Repository enthält das **AUVIS‑System**, das im Rahmen einer Projektarbeit im Sommer- und Wintersemester 25/26 an der Fachhochschule Südwestfalen entwickelt und als Beitrag zur  
 [**CHiME‑9 Multi‑Modal Context‑aware Recognition (MCoRec) Challenge**](https://www.chimechallenge.org/current/task1/index) eingereicht wurde.
 
-Der Fokus des Systems liegt auf der robusten **audiovisuellen Spracherkennung** und dem **Konversations‑Clustering**
-in unstrukturierten, realitätsnahen Mehrsprecher‑Szenarien („in‑the‑wild“) auf Basis von 360°‑Video‑ und Audiodaten.
+## 1. Aufgabenstellung
 
-## 1. Systemübersicht
+Die CHiME-9 MCoRec Challenge fordert robuste audiovisuelle Spracherkennungssysteme für unskriptierte „In-the-Wild"-Szenarien: 360°-Videoaufnahmen mit mehreren Sprechern, die sich frei im Raum bewegen. Ziel ist die korrekte Transkription und gleichzeitige Zuordnung der Sprache zu Konversationsgruppen. Die Bewertung erfolgt über die **Joint ASR-Clustering Error Rate (JACR)**, die Transkriptionsgenauigkeit und Sprecherzuordnung gemeinsam bewertet.
 
-Das AUVIS‑System basiert auf der [offiziellen CHiME‑9‑Baseline](https://github.com/MCoRec/mcorec_baseline) und folgt einer modularen, sequenziellen Pipeline:
+## 2. Systemübersicht
+
+Das AUVIS-System basiert auf der [offiziellen CHiME‑9‑Baseline](https://github.com/MCoRec/mcorec_baseline), nutzt die [bereitgestellten Challenge-Daten](https://huggingface.co/datasets/MCoRecChallenge/MCoRec) und folgt einer modularen, sequenziellen Pipeline:
 
 **Eingabe:** 360° Video + Audio
 
@@ -21,11 +22,11 @@ Das AUVIS‑System basiert auf der [offiziellen CHiME‑9‑Baseline](https://gi
 
 **Ausgabe:** Sprecherzugeordnete Transkripte und Konversations‑IDs
 
-Es wurden die bereitgestellten Daten der Challenge genutzt. [(Quelle)](https://huggingface.co/datasets/MCoRecChallenge/MCoRec)
+## 3. zentrale Beiträge dieser Arbeit
 
-## 2. Zentrale Beiträge dieser Arbeit
+Für jeden der fünf Subtasks der Pipeline wurden systematisch Experimente durchgeführt, um Verbesserungen gegenüber der Baseline zu erzielen.
 
-- Entkopplung der Segmentierungsparameter zwischen **ASR‑ und Clustering‑Pipeline**
+- Entkopplung der Segmentierungsparameter zwischen **AVSR‑ und Clustering‑Pipeline**
 - Gemeinsame Optimierung von:
   - ASD‑Segmentierungsparametern
   - Clustering‑Parametern
@@ -38,7 +39,7 @@ Es wurden die bereitgestellten Daten der Challenge genutzt. [(Quelle)](https://h
   als der Einsatz komplexerer Einzelmodelle
 
 
-## 3. Ergebnisse (Development‑Datensatz)
+## 4. Ergebnisse (Development‑Datensatz)
 
 | Metrik | Baseline | AUVIS (optimiert) |
 |------|---------|------------------|
@@ -52,7 +53,19 @@ Es wurden die bereitgestellten Daten der Challenge genutzt. [(Quelle)](https://h
 Die signifikanten Leistungsgewinne resultieren primär aus der **Optimierung des Konversations‑Clusterings**
 und der vorgelagerten ASD‑Segmentierung.
 
-## 4. Projektsetup 
+## 4. Repository-Struktur
+```
+auvis_system/          # Modifizierte CHiME-9-Baseline (Kernsystem)
+├── script/            # angepasste Inference, Training und Evaluationsskripte
+├── src/               # Modellarchitekturen und Hilfsfunktionen
+├── subtask_1_additional_files/  # Experimente Subtask 1
+├── subtask_2/         # Experimente Subtask 2
+├── subtask_3_experiments/       # Experimente Subtask 3
+├── subtask_4_experiments/       # Experimente Subtask 4
+└── subtask_5_experiments/       # Experimente Subtask 5
+```
+
+## 5. Projektsetup 
 
 ### 1. Virtuelle Umgebung im Ordner ".venv" erstellen
 python -m venv .venv
@@ -72,4 +85,4 @@ in die ".env" - Datei eintragen
 ### 5. ffmpeg muss auf dem System installiert werden
 https://www.ffmpeg.org/
 
-Siehe für das Setup auch die [Erläuterungen der CHiME-9-Challenge](https://github.com/MCoRec/mcorec_baseline). 
+Siehe auch die [Setup-Dokumentation der CHiME-9-Challenge](https://github.com/MCoRec/mcorec_baseline).
