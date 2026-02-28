@@ -1,0 +1,208 @@
+Evaluating 25 sessions
+
+=== Evaluating session session_44 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 0.6
+Speaker to WER: {'spk_0': 0.4006, 'spk_1': 0.6334, 'spk_2': 0.538, 'spk_3': 0.611, 'spk_4': 0.6278, 'spk_5': 0.6301}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 0.5, 'spk_3': 0.5, 'spk_4': 0.5, 'spk_5': 0.5}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.2003, 'spk_1': 0.3167, 'spk_2': 0.519, 'spk_3': 0.5555, 'spk_4': 0.5639000000000001, 'spk_5': 0.56505}
+
+=== Evaluating session session_57 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.335, 'spk_1': 0.3285, 'spk_2': 0.4651, 'spk_3': 0.5205, 'spk_4': 0.5283}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.1675, 'spk_1': 0.16425, 'spk_2': 0.23255, 'spk_3': 0.26025, 'spk_4': 0.26415}
+
+=== Evaluating session session_139 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 0.5
+Speaker to WER: {'spk_0': 0.4372, 'spk_1': 0.4716, 'spk_2': 0.5797, 'spk_3': 0.4788, 'spk_4': 0.6078, 'spk_5': 0.3856}
+Speaker clustering F1 score: {'spk_0': 0.0, 'spk_1': 0.3333, 'spk_2': 0.3333, 'spk_3': 0.6667, 'spk_4': 0.6667, 'spk_5': 0.6667}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.7186, 'spk_1': 0.56915, 'spk_2': 0.6232, 'spk_3': 0.40605, 'spk_4': 0.47055, 'spk_5': 0.35945000000000005}
+
+=== Evaluating session session_133 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.4976, 'spk_1': 0.427, 'spk_2': 0.4184, 'spk_3': 0.5902, 'spk_4': 0.606, 'spk_5': 0.3208}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.2488, 'spk_1': 0.2135, 'spk_2': 0.2092, 'spk_3': 0.2951, 'spk_4': 0.303, 'spk_5': 0.1604}
+
+=== Evaluating session session_134 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.4733, 'spk_1': 0.4527, 'spk_2': 0.4516, 'spk_3': 0.4096, 'spk_4': 0.5309, 'spk_5': 0.5757}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.23665, 'spk_1': 0.22635, 'spk_2': 0.2258, 'spk_3': 0.2048, 'spk_4': 0.26545, 'spk_5': 0.28785}
+
+=== Evaluating session session_50 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 0.5714285714285715
+Speaker to WER: {'spk_0': 0.6982, 'spk_1': 0.3768, 'spk_2': 0.5792, 'spk_3': 0.55, 'spk_4': 0.5472, 'spk_5': 0.324}
+Speaker clustering F1 score: {'spk_0': 0.5714, 'spk_1': 0.5714, 'spk_2': 0.5714, 'spk_3': 0.5714, 'spk_4': 0.5714, 'spk_5': 0.5714}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.5634, 'spk_1': 0.4027, 'spk_2': 0.5039, 'spk_3': 0.4893, 'spk_4': 0.4879, 'spk_5': 0.37629999999999997}
+
+=== Evaluating session session_49 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.5442, 'spk_1': 0.4075, 'spk_2': 0.4493, 'spk_3': 0.3179, 'spk_4': 0.3695, 'spk_5': 0.544}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.2721, 'spk_1': 0.20375, 'spk_2': 0.22465, 'spk_3': 0.15895, 'spk_4': 0.18475, 'spk_5': 0.272}
+
+=== Evaluating session session_43 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.3156, 'spk_1': 0.5951, 'spk_2': 0.4487, 'spk_3': 0.4084, 'spk_4': 0.4989, 'spk_5': 0.5464}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.1578, 'spk_1': 0.29755, 'spk_2': 0.22435, 'spk_3': 0.2042, 'spk_4': 0.24945, 'spk_5': 0.2732}
+
+=== Evaluating session session_54 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 0.6666666666666666
+Speaker to WER: {'spk_0': 0.4434, 'spk_1': 0.3311, 'spk_2': 0.4641, 'spk_3': 0.4095, 'spk_4': 1.2513}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 0.6667, 'spk_3': 0.0, 'spk_4': 0.6667}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.2217, 'spk_1': 0.16555, 'spk_2': 0.39870000000000005, 'spk_3': 0.70475, 'spk_4': 0.7923}
+
+=== Evaluating session session_140 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 0.5714285714285715
+Speaker to WER: {'spk_0': 0.4557, 'spk_1': 0.4536, 'spk_2': 0.3936, 'spk_3': 0.4628, 'spk_4': 0.6281, 'spk_5': 0.5019}
+Speaker clustering F1 score: {'spk_0': 0.5714, 'spk_1': 0.5714, 'spk_2': 0.5714, 'spk_3': 0.5714, 'spk_4': 0.5714, 'spk_5': 0.5714}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.44215, 'spk_1': 0.4411, 'spk_2': 0.4111, 'spk_3': 0.4457, 'spk_4': 0.52835, 'spk_5': 0.46525}
+
+=== Evaluating session session_137 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 0.5
+Speaker to WER: {'spk_0': 0.5944, 'spk_1': 0.3412, 'spk_2': 0.6555, 'spk_3': 0.4209, 'spk_4': 0.5025, 'spk_5': 0.3825}
+Speaker clustering F1 score: {'spk_0': 0.3333, 'spk_1': 0.0, 'spk_2': 0.3333, 'spk_3': 0.6667, 'spk_4': 0.6667, 'spk_5': 0.6667}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.63055, 'spk_1': 0.6706, 'spk_2': 0.6611, 'spk_3': 0.3771, 'spk_4': 0.4179, 'spk_5': 0.3579}
+
+=== Evaluating session session_53 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.4356, 'spk_1': 0.5047, 'spk_2': 0.932, 'spk_3': 0.3039, 'spk_4': 0.2717}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.2178, 'spk_1': 0.25235, 'spk_2': 0.466, 'spk_3': 0.15195, 'spk_4': 0.13585}
+
+=== Evaluating session session_40 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.5793, 'spk_1': 0.4297, 'spk_2': 0.5035, 'spk_3': 0.4264, 'spk_4': 0.5103, 'spk_5': 0.4131}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.28965, 'spk_1': 0.21485, 'spk_2': 0.25175, 'spk_3': 0.2132, 'spk_4': 0.25515, 'spk_5': 0.20655}
+
+=== Evaluating session session_42 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.5459, 'spk_1': 0.3718, 'spk_2': 0.5314, 'spk_3': 0.5333, 'spk_4': 0.5963, 'spk_5': 0.539}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.27295, 'spk_1': 0.1859, 'spk_2': 0.2657, 'spk_3': 0.26665, 'spk_4': 0.29815, 'spk_5': 0.2695}
+
+=== Evaluating session session_48 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_1': 0.5069, 'spk_2': 0.4033, 'spk_3': 0.5967}
+Speaker clustering F1 score: {'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 0.0}
+Joint ASR-Clustering Error Rate: {'spk_1': 0.25345, 'spk_2': 0.20165, 'spk_3': 0.79835}
+
+=== Evaluating session session_135 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.5623, 'spk_1': 0.6263, 'spk_3': 0.3973, 'spk_4': 0.447, 'spk_5': 0.3845}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_3': 0.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.28115, 'spk_1': 0.31315, 'spk_3': 0.69865, 'spk_4': 0.2235, 'spk_5': 0.19225}
+
+=== Evaluating session session_51 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.4365, 'spk_1': 0.5495, 'spk_2': 0.5541, 'spk_3': 0.2693, 'spk_4': 0.5831, 'spk_5': 0.4046}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.21825, 'spk_1': 0.27475, 'spk_2': 0.27705, 'spk_3': 0.13465, 'spk_4': 0.29155, 'spk_5': 0.2023}
+
+=== Evaluating session session_56 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.634, 'spk_1': 0.4741, 'spk_2': 0.3827, 'spk_4': 0.6211}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_4': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.317, 'spk_1': 0.23705, 'spk_2': 0.19135, 'spk_4': 0.31055}
+
+=== Evaluating session session_132 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.3473, 'spk_1': 0.5906, 'spk_2': 0.4812, 'spk_3': 0.4842, 'spk_4': 0.6095, 'spk_5': 0.6828}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.17365, 'spk_1': 0.2953, 'spk_2': 0.2406, 'spk_3': 0.2421, 'spk_4': 0.30475, 'spk_5': 0.3414}
+
+=== Evaluating session session_138 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 0.6153846153846153
+Speaker to WER: {'spk_0': 0.5202, 'spk_1': 0.3724, 'spk_2': 0.4439, 'spk_3': 0.53, 'spk_4': 0.7246, 'spk_5': 0.546}
+Speaker clustering F1 score: {'spk_0': 0.0, 'spk_1': 0.6667, 'spk_2': 0.6667, 'spk_3': 0.8, 'spk_4': 0.8, 'spk_5': 0.8}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.7601, 'spk_1': 0.35285, 'spk_2': 0.38860000000000006, 'spk_3': 0.365, 'spk_4': 0.4623, 'spk_5': 0.373}
+
+=== Evaluating session session_41 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.5052, 'spk_1': 0.2977, 'spk_2': 0.4974, 'spk_3': 0.4679, 'spk_4': 0.5826, 'spk_5': 0.5332}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.2526, 'spk_1': 0.14885, 'spk_2': 0.2487, 'spk_3': 0.23395, 'spk_4': 0.2913, 'spk_5': 0.2666}
+
+=== Evaluating session session_136 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 1.0
+Speaker to WER: {'spk_0': 0.3944, 'spk_1': 0.5296, 'spk_2': 0.5686, 'spk_3': 0.4701, 'spk_4': 0.3664, 'spk_5': 0.5489}
+Speaker clustering F1 score: {'spk_0': 1.0, 'spk_1': 1.0, 'spk_2': 1.0, 'spk_3': 1.0, 'spk_4': 1.0, 'spk_5': 1.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.1972, 'spk_1': 0.2648, 'spk_2': 0.2843, 'spk_3': 0.23505, 'spk_4': 0.1832, 'spk_5': 0.27445}
+
+=== Evaluating session session_141 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 0.5714285714285715
+Speaker to WER: {'spk_0': 0.6392, 'spk_1': 0.4059, 'spk_2': 0.6351, 'spk_3': 0.618, 'spk_4': 0.6986}
+Speaker clustering F1 score: {'spk_0': 0.6667, 'spk_1': 0.6667, 'spk_2': 0.6667, 'spk_3': 0.4, 'spk_4': 0.4}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.48625, 'spk_1': 0.36960000000000004, 'spk_2': 0.4842, 'spk_3': 0.609, 'spk_4': 0.6493}
+
+=== Evaluating session session_52 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 0.5
+Speaker to WER: {'spk_0': 0.5321, 'spk_1': 0.5374, 'spk_2': 0.4862, 'spk_3': 0.5348, 'spk_4': 0.6566, 'spk_5': 0.1912}
+Speaker clustering F1 score: {'spk_0': 0.3333, 'spk_1': 0.3333, 'spk_2': 0.0, 'spk_3': 0.6667, 'spk_4': 0.6667, 'spk_5': 0.6667}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.5994, 'spk_1': 0.60205, 'spk_2': 0.7431, 'spk_3': 0.43405000000000005, 'spk_4': 0.49495, 'spk_5': 0.26225000000000004}
+
+=== Evaluating session session_55 ===
+
+--- Evaluating output dir: output_final_bs12_len20 ---
+Conversation clustering F1 score: 0.28571428571428575
+Speaker to WER: {'spk_0': 0.4809, 'spk_1': 0.4362, 'spk_2': 0.2795, 'spk_3': 0.9184, 'spk_4': 0.2656}
+Speaker clustering F1 score: {'spk_0': 0.0, 'spk_1': 0.0, 'spk_2': 0.5, 'spk_3': 0.5, 'spk_4': 0.0}
+Joint ASR-Clustering Error Rate: {'spk_0': 0.74045, 'spk_1': 0.7181, 'spk_2': 0.38975000000000004, 'spk_3': 0.7092, 'spk_4': 0.6328}
+
+================= SUMMARY =================
+
+Results for output dir prefix variant 'output_final_bs12_len20':
+  Average Conversation Clustering F1 score: 0.8152820512820513
+  Average Speaker WER: 0.49796690647482056
+  Average Joint ASR-Clustering Error Rate: 0.3542935251798563
