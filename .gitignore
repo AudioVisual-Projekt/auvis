@@ -14,3 +14,8 @@ auvis_system/model-bin/face_detection
 
 auvis_system/conda-env
 auvis_system/data-bin
+
+auvis_system/subtask_5_experiments/ASD_Clustering/data-bin/dev/**/*.mp4
+auvis_system/subtask_5_experiments/ASD_Clustering/data-bin/train/**/*.mp4
+auvis_system/subtask_5_experiments/ASD_Clustering/data-bin/train/**/ego_crops/
+auvis_system/subtask_5_experiments/ASD_Clustering/data-bin/eval/**/*.mp4
