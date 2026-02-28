@@ -1,0 +1,6 @@
+variant_name,avg_conversation_clustering_f1,avg_speaker_wer,avg_joint_asr_clustering_error
+output,0.5,0.5544666666666667,0.5550083333333334
+output_core_fixed,0.5,0.5438999999999999,0.5497249999999999
+output_smoothing_ema,0.5,0.5506000000000001,0.5530750000000001
+output_smoothing_ma,0.5,0.5417166666666667,0.5486333333333334
+output_smoothing_median,0.5,0.5506000000000001,0.5530750000000001

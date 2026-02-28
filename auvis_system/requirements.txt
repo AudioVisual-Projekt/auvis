@@ -18,3 +18,4 @@ ffmpeg-python==0.2.0
 scikit-learn==1.6.1
 webvtt-py
 matplotlib
+numpy
