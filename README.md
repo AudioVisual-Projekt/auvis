@@ -55,12 +55,7 @@ sondern auf der **Optimierung der Schnittstellen und Parameterkopplungen** zwisc
 Die signifikanten Leistungsgewinne resultieren primär aus der **Optimierung des Konversations‑Clusterings**
 und der vorgelagerten ASD‑Segmentierung.
 
-## 4. Ways of working
-Ways of working ist im Wiki niedergeschrieben.
-[klick hier](https://github.com/AudioVisual-Projekt/auvis/wiki/Ways-of-working)
-
-
-## 5. Projektsetup 
+## 4. Projektsetup 
 
 ### 1. Virtuelle Umgebung im Ordner ".venv" erstellen
 python -m venv .venv
@@ -79,3 +74,5 @@ in die ".env" - Datei eintragen
 
 ### 5. ffmpeg muss auf dem System installiert werden
 https://www.ffmpeg.org/
+
+Siehe für das Setup auch die [Erläuterungen der CHiME-9-Challenge](https://github.com/MCoRec/mcorec_baseline). 
