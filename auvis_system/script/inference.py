@@ -228,7 +228,7 @@ class InferenceEngine:
         self.model_impl.load_model()
         print(f"{self.model_type} model loaded successfully!")
     
-    def chunk_video(self, video_path, asd_path=None, max_length=15):
+    def chunk_video(self, video_path, asd_path=None, max_length=15, parameter_set="old"):
         """Split video into chunks for inference"""
         if asd_path is not None:
             with open(asd_path, "r") as f:
@@ -239,9 +239,17 @@ class InferenceEngine:
             # Find the minimum frame number to normalize frame indices
             min_frame = min(frames)
 
-            segments_by_frames = segment_by_asd(asd, {
-                "max_chunk_size": max_length,  # in seconds
-            })
+            if parameter_set == "new":
+                segments_by_frames = segment_by_asd(asd, {
+                    "min_duration_on": 1.0,  # drop
+                    "min_duration_off": 1.2,  # fill
+                    "max_chunk_size": max_length,  # in seconds
+                })
+            else:
+                segments_by_frames = segment_by_asd(asd, {
+                    "max_chunk_size": max_length,  # in seconds
+                })
+
             # Normalize frame indices, for inference, don't care about the actual frame indices
             segments = [((seg[0] - min_frame) / 25, (seg[-1] - min_frame) / 25) for seg in segments_by_frames]
 
@@ -271,9 +279,9 @@ class InferenceEngine:
         milliseconds = int((timestamp - int(timestamp)) * 1000)
         return f"{hours:02d}:{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
     
-    def infer_video(self, video_path, asd_path=None, offset=0., desc=None):
+    def infer_video(self, video_path, asd_path=None, offset=0., desc=None, parameter_set="old"):
         """Perform inference on a video file"""
-        segments = self.chunk_video(video_path, asd_path, max_length=self.max_length)
+        segments = self.chunk_video(video_path, asd_path, max_length=self.max_length, parameter_set=parameter_set)
         segment_output = []
         
         for seg in tqdm(segments, desc="Processing segments" if desc is None else desc, total=len(segments)):
@@ -310,7 +318,7 @@ class InferenceEngine:
             } for seg, output in zip(segments, segment_output)
         ]
     
-    def mcorec_session_infer(self, session_dir, output_dir):
+    def mcorec_session_infer(self, session_dir, output_dir, parameter_set="old"):
         """Process a complete MCoReC session"""
         # Load session metadata
         with open(os.path.join(session_dir, "metadata.json"), "r") as f:
@@ -324,11 +332,17 @@ class InferenceEngine:
                 list_tracks_asd.append(os.path.join(session_dir, track['asd']))
             uem_start = speaker_data['central']['uem']['start']
             uem_end = speaker_data['central']['uem']['end']
-            speaker_activity_segments = get_speaker_activity_segments(list_tracks_asd, uem_start, uem_end)
+            speaker_activity_segments = get_speaker_activity_segments(list_tracks_asd, uem_start, uem_end, parameter_set)
             speaker_segments[speaker_name] = speaker_activity_segments
         
         scores = calculate_conversation_scores(speaker_segments)
-        clusters = cluster_speakers(scores, list(speaker_segments.keys()))   
+
+        if parameter_set == "new":
+            cluster_threshold = 0.85
+        else:
+            cluster_threshold = 0.7
+
+        clusters = cluster_speakers(scores, list(speaker_segments.keys()), cluster_threshold)
         output_clusters_file = os.path.join(output_dir, "speaker_to_cluster.json")
         with open(output_clusters_file, "w") as f:
             json.dump(clusters, f, indent=4)    
@@ -343,7 +357,7 @@ class InferenceEngine:
                 with open(os.path.join(session_dir, track['crop_metadata']), "r") as f:
                     crop_metadata = json.load(f)
                 track_start_time = crop_metadata['start_time']
-                hypotheses = self.infer_video(video_path, asd_path, offset=track_start_time, desc=f"Processing speaker {speaker_name} track {idx+1} of {len(speaker_data['central']['crops'])}")
+                hypotheses = self.infer_video(video_path, asd_path, offset=track_start_time, desc=f"Processing speaker {speaker_name} track {idx+1} of {len(speaker_data['central']['crops'])}", parameter_set=parameter_set)
                 speaker_track_hypotheses.extend(hypotheses)
 
                 # GPU Memory Cleanup after each track
@@ -423,13 +437,28 @@ def main():
         default='output',
         help='Name of the output directory within each session (default: output)'
     )
+
+    parser.add_argument(
+        '--parameter_set',
+        type=str,
+        default='old',  # "new" if taking the optimized ones
+        help='using baseline parameter set or adjusted one (after finding optimal parameters)'
+    )
     
     args = parser.parse_args()
+
+    parameter_set = args.parameter_set
+    if parameter_set == "new":
+        beam_size = 12
+        max_length = 20
+    else:
+        beam_size = args.beam_size
+        max_length = args.max_length
     
     # Initialize inference engine
-    engine = InferenceEngine(args.model_type, args.checkpoint_path, args.cache_dir, args.beam_size, args.max_length)
+    engine = InferenceEngine(args.model_type, args.checkpoint_path, args.cache_dir, beam_size, max_length)
     engine.load_model()
-    
+
     # Process session directories
     if args.session_dir.strip().endswith("*"):
         all_session_dirs = glob.glob(args.session_dir)
@@ -450,7 +479,7 @@ def main():
             print(f"  Input: {session_dir}")
             print(f"  Output: {output_dir}")
         
-        engine.mcorec_session_infer(session_dir, output_dir)
+        engine.mcorec_session_infer(session_dir, output_dir, parameter_set)
         
         if args.verbose:
             print(f"  Completed session {session_name}")
