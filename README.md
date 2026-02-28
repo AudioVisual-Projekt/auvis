@@ -1,7 +1,7 @@
 
 # Projektgruppe:  Audiovisuelle Gesprächsanalyse  SoSe25+WiSe25/26
 
-Dieses Repository enthält das **AUVIS‑System**, das im Rahmen einer Masterarbeit entwickelt und als Beitrag zur  
+Dieses Repository enthält das **AUVIS‑System**, das im Rahmen einer Projektarbeit an der Fachhochschule Südwestfalen entwickelt und als Beitrag zur  
 **CHiME‑9 Multi‑Modal Context‑aware Recognition (MCoRec) Challenge** eingereicht wurde.
 
 Der Fokus des Systems liegt auf der robusten **audiovisuellen Spracherkennung** und dem **Konversations‑Clustering**
