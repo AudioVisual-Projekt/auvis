@@ -1,3 +1,23 @@
+"""
+Gegenüber der Challenge-Baseline wurde dieses Skript um den Parameter
+`--mcorec_mode` erweitert (markiert mit # Ergänzung), der eine stärkere
+Gewichtung des MCoRec-Datensatzes im Trainings-Mix ermöglicht:
+  - "default": identisch zur Baseline (~20 % MCoRec)
+  - "heavy":   MCoRec auf ~70 % hochgewichtet (genutzt in Subtask 4 Notebook 02b_)
+
+Alle anderen Parameter und das Trainingsverhalten bleiben im Default-Modus
+identisch zur Original-Baseline.
+
+Verwendung:
+    # Standard-Mix (wie Baseline, genutzt in Subtask 4 Notebook 02a_):
+    python script/train.py --streaming_dataset --include_mcorec \\
+        --batch_size 4 --max_steps 30000 --learning_rate 5e-5
+
+    # MCoRec-Heavy-Mix (genutzt in Subtask 4 Notebook 02b_):
+    python script/train.py --streaming_dataset --include_mcorec \\
+        --mcorec_mode heavy --batch_size 4 --max_steps 5000 --learning_rate 1e-5
+"""
+
 import os
 import sys
 os.sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__))))
@@ -37,7 +57,13 @@ os.environ['WANDB_PROJECT'] = 'mcorec'
 
 
 
-def load_avsr_dataset(cache_dir='data-bin/cache', include_mcorec=True, streaming=False):
+def load_avsr_dataset(
+    cache_dir='data-bin/cache',
+    include_mcorec=True,
+    streaming=False,
+    mcorec_mode: str = "default",   # Ergänzung steuert MCoRec-Gewichtung im Mix
+):
+
     # streaming=True to avoid downloading all dataset at once, but it can be crash if network is unstable
     # streaming=False to download all dataset at once, it take time and around 1.5TB disk space. More stable.
 
@@ -86,13 +112,25 @@ def load_avsr_dataset(cache_dir='data-bin/cache', include_mcorec=True, streaming
                 print(f"Split {split} has {split_size} samples and {ds[split].num_shards} shards")
 
     if include_mcorec:
-        map_dataset_probabilities = {
-            "lrs2": 0.25,
-            "vox2": 0.10,
-            "avyt": 0.20,
-            "avyt-mix": 0.25,
-            "mcorec": 0.2,
-        }
+        if mcorec_mode == "heavy":
+            # Ergänzung: mcorec_mode steuert die Datensatz-Gewichtung im Mix.
+            # "heavy" wurde in 02b_ genutzt um MCoRec stärker zu fokussieren.
+            # "default" ist identisch zur Original-Baseline.
+            map_dataset_probabilities = {
+                "lrs2":     0.10,
+                "vox2":     0.05,
+                "avyt":     0.10,
+                "avyt-mix": 0.05,
+                "mcorec":   0.70, # ~70 % MCoRec statt ~20 % im Default
+            }
+        else:  # "default"
+            map_dataset_probabilities = {
+                "lrs2":     0.25,
+                "vox2":     0.10,
+                "avyt":     0.20,
+                "avyt-mix": 0.25,
+                "mcorec":   0.20,
+            }
     else:
         map_dataset_probabilities = {
             "lrs2": 0.3,
@@ -100,6 +138,7 @@ def load_avsr_dataset(cache_dir='data-bin/cache', include_mcorec=True, streaming
             "avyt": 0.25,
             "avyt-mix": 0.25,
         }
+
     
     map_datasets = {
         "lrs2": {
@@ -185,6 +224,10 @@ if __name__ == "__main__":
     parser.add_argument("--model_name_or_path", type=str, default="./model-bin/avsr_cocktail") # Or None to train from scratch
     parser.add_argument("--report_to", type=str, default="none") # wandb or none
     parser.add_argument("--output_dir", type=str, default=os.path.join(os.path.dirname(os.path.dirname(__file__)), f"model-bin"))
+    parser.add_argument("--mcorec_mode", type=str, default="default",
+                    choices=["default", "heavy"],
+                    help="Gewichtung von MCoRec im Dataset-Mix") # Ergänzung: --mcorec_mode ermöglicht stärkere MCoRec-Gewichtung ohne
+                                                                # die Baseline-Parameter zu verändern. Default = identisch zur Baseline.
 
     args = parser.parse_args()
 
@@ -203,6 +246,8 @@ if __name__ == "__main__":
     model_name_or_path = args.model_name_or_path # Or None to train from scratch
     output_dir = os.path.join(args.output_dir, checkpoint_name)
     report_to = args.report_to
+    mcorec_mode = args.mcorec_mode # Ergänzung
+
     
     # Create output directory if it doesn't exist
     if not os.path.exists(output_dir):
@@ -237,7 +282,8 @@ if __name__ == "__main__":
         avsr_model.avsr.encoder.load_state_dict(encoder_pretrained.state_dict())
     
     # Load dataset
-    train_dataset, valid_dataset, interference_dataset = load_avsr_dataset(streaming=streaming_dataset, include_mcorec=include_mcorec)
+    # Ergänzung: mcorec_mode wird übergeben um den Dataset-Mix zu steuern
+    train_dataset, valid_dataset, interference_dataset = load_avsr_dataset(streaming=streaming_dataset, include_mcorec=include_mcorec,mcorec_mode=mcorec_mode) # Ergänzung
         
     train_av_data_collator = DataCollator(
         text_transform=text_transform,
