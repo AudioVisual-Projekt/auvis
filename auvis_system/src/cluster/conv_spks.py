@@ -165,7 +165,7 @@ def cluster_speakers(scores: np.ndarray,
     spk_to_cluster = {spk_id: label.item() for spk_id, label in zip(speaker_ids, cluster_labels)}
     return spk_to_cluster
 
-def get_speaker_activity_segments(pycrop_asd_path: List[str], uem_start: int, uem_end: int) -> List[Tuple[float, float]]:
+def get_speaker_activity_segments(pycrop_asd_path: List[str], uem_start: int, uem_end: int, parameter_set: str) -> List[Tuple[float, float]]:
     pycrop_asd_path = sorted(pycrop_asd_path)
     all_frames = dict({})
     for asd_path in pycrop_asd_path:
@@ -185,8 +185,18 @@ def get_speaker_activity_segments(pycrop_asd_path: List[str], uem_start: int, ue
     #             current_segment = []
     # if current_segment:
     #     activity_segments.append(current_segment)
-    
-    activity_segments = segment_by_asd(all_frames)
+
+    if parameter_set == "new":
+        activity_segments = segment_by_asd(all_frames, {
+            "onset": 3.0,  # start threshold
+            "offset": 3.7,  # end threshold
+            "min_duration_on": 0.7,  # drop
+            "min_duration_off": 1.57,  # fill
+            "max_chunk_size": 10,
+            "min_chunk_size": 1
+        })
+    else:
+        activity_segments = segment_by_asd(all_frames)
 
     activity_segments = [
         (int(segment[0])/25, int(segment[-1])/25)
